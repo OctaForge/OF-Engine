@@ -21,28 +21,28 @@ namespace octa {
 namespace detail {
 } /* namespace detail */
 
-template<typename T, typename A = octa::Allocator<T>>
+template<typename T, typename A = Allocator<T>>
 class Vector {
-    using VecPair = octa::detail::CompressedPair<octa::AllocatorPointer<A>, A>;
+    using VecPair = detail::CompressedPair<AllocatorPointer<A>, A>;
 
-    octa::Size p_len, p_cap;
+    Size p_len, p_cap;
     VecPair p_buf;
 
-    void insert_base(octa::Size idx, octa::Size n) {
+    void insert_base(Size idx, Size n) {
         if (p_len + n > p_cap) reserve(p_len + n);
         p_len += n;
-        for (octa::Size i = p_len - 1; i > idx + n - 1; --i) {
-            p_buf.first()[i] = octa::move(p_buf.first()[i - n]);
+        for (Size i = p_len - 1; i > idx + n - 1; --i) {
+            p_buf.first()[i] = move(p_buf.first()[i - n]);
         }
     }
 
     template<typename R>
-    void ctor_from_range(R &range, octa::EnableIf<
-        octa::IsFiniteRandomAccessRange<R>::value &&
-        octa::IsPod<T>::value &&
-        octa::IsSame<T, octa::RemoveCv<octa::RangeValue<R>>>::value, bool
+    void ctor_from_range(R &range, EnableIf<
+        IsFiniteRandomAccessRange<R>::value &&
+        IsPod<T>::value &&
+        IsSame<T, RemoveCv<RangeValue<R>>>::value, bool
     > = true) {
-        octa::RangeSize<R> l = range.size();
+        RangeSize<R> l = range.size();
         reserve(l);
         p_len = l;
         range.copy(p_buf.first(), l);
@@ -50,58 +50,57 @@ class Vector {
 
     template<typename R>
     void ctor_from_range(R &range, EnableIf<
-        !octa::IsFiniteRandomAccessRange<R>::value ||
-        !octa::IsPod<T>::value ||
-        !octa::IsSame<T, octa::RemoveCv<octa::RangeValue<R>>>::value, bool
+        !IsFiniteRandomAccessRange<R>::value ||
+        !IsPod<T>::value ||
+        !IsSame<T, RemoveCv<RangeValue<R>>>::value, bool
     > = true) {
-        octa::Size i = 0;
+        Size i = 0;
         for (; !range.empty(); range.pop_front()) {
             reserve(i + 1);
-            octa::allocator_construct(p_buf.second(),
-                &p_buf.first()[i], range.front());
+            allocator_construct(p_buf.second(), &p_buf.first()[i],
+                range.front());
             ++i;
             p_len = i;
         }
     }
 
     void copy_contents(const Vector &v) {
-        if (octa::IsPod<T>()) {
+        if (IsPod<T>()) {
             memcpy(p_buf.first(), v.p_buf.first(), p_len * sizeof(T));
         } else {
             Pointer cur = p_buf.first(), last = p_buf.first() + p_len;
             Pointer vbuf = v.p_buf.first();
             while (cur != last) {
-                octa::allocator_construct(p_buf.second(),
-                   cur++, *vbuf++);
+                allocator_construct(p_buf.second(), cur++, *vbuf++);
             }
         }
     }
 
 public:
-    using Size = octa::Size;
-    using Difference = octa::Ptrdiff;
+    using Size = Size;
+    using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
     using ConstReference = const T &;
-    using Pointer = octa::AllocatorPointer<A>;
-    using ConstPointer = octa::AllocatorConstPointer<A>;
-    using Range = octa::PointerRange<T>;
-    using ConstRange = octa::PointerRange<const T>;
+    using Pointer = AllocatorPointer<A>;
+    using ConstPointer = AllocatorConstPointer<A>;
+    using Range = PointerRange<T>;
+    using ConstRange = PointerRange<const T>;
     using Allocator = A;
 
     Vector(const A &a = A()): p_len(0), p_cap(0), p_buf(nullptr, a) {}
 
     explicit Vector(Size n, const T &val = T(),
     const A &al = A()): Vector(al) {
-        p_buf.first() = octa::allocator_allocate(p_buf.second(), n);
+        p_buf.first() = allocator_allocate(p_buf.second(), n);
         p_len = p_cap = n;
         Pointer cur = p_buf.first(), last = p_buf.first() + n;
         while (cur != last)
-            octa::allocator_construct(p_buf.second(), cur++, val);
+            allocator_construct(p_buf.second(), cur++, val);
     }
 
     Vector(const Vector &v): p_len(0), p_cap(0), p_buf(nullptr,
-    octa::allocator_container_copy(v.p_buf.second())) {
+    allocator_container_copy(v.p_buf.second())) {
         reserve(v.p_cap);
         p_len = v.p_len;
         copy_contents(v);
@@ -114,7 +113,7 @@ public:
     }
 
     Vector(Vector &&v): p_len(v.p_len), p_cap(v.p_cap), p_buf(v.p_buf.first(),
-    octa::move(v.p_buf.second())) {
+    move(v.p_buf.second())) {
         v.p_buf.first() = nullptr;
         v.p_len = v.p_cap = 0;
     }
@@ -123,14 +122,13 @@ public:
         if (a != v.p_buf.second()) {
             reserve(v.p_cap);
             p_len = v.p_len;
-            if (octa::IsPod<T>()) {
+            if (IsPod<T>()) {
                 memcpy(p_buf.first(), v.p_buf.first(), p_len * sizeof(T));
             } else {
                 Pointer cur = p_buf.first(), last = p_buf.first() + p_len;
                 Pointer vbuf = v.p_buf.first();
                 while (cur != last) {
-                    octa::allocator_construct(p_buf.second(), cur++,
-                        octa::move(*vbuf++));
+                    allocator_construct(p_buf.second(), cur++, move(*vbuf++));
                 }
             }
             return;
@@ -144,12 +142,11 @@ public:
 
     Vector(const Value *buf, Size n, const A &a = A()): Vector(a) {
         reserve(n);
-        if (octa::IsPod<T>()) {
+        if (IsPod<T>()) {
             memcpy(p_buf.first(), buf, n * sizeof(T));
         } else {
             for (Size i = 0; i < n; ++i)
-                octa::allocator_construct(p_buf.second(),
-                    &p_buf.first()[i], buf[i]);
+                allocator_construct(p_buf.second(), &p_buf.first()[i], buf[i]);
         }
         p_len = n;
     }
@@ -157,23 +154,23 @@ public:
     Vector(InitializerList<T> v, const A &a = A()):
         Vector(v.begin(), v.size(), a) {}
 
-    template<typename R, typename = octa::EnableIf<
-        octa::IsInputRange<R>::value &&
-        octa::IsConvertible<RangeReference<R>, Value>::value
+    template<typename R, typename = EnableIf<
+        IsInputRange<R>::value &&
+        IsConvertible<RangeReference<R>, Value>::value
     >> Vector(R range, const A &a = A()): Vector(a) {
         ctor_from_range(range);
     }
 
     ~Vector() {
         clear();
-        octa::allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
+        allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
     }
 
     void clear() {
-        if (p_len > 0 && !octa::IsPod<T>()) {
+        if (p_len > 0 && !IsPod<T>()) {
             Pointer cur = p_buf.first(), last = p_buf.first() + p_len;
             while (cur != last)
-                octa::allocator_destroy(p_buf.second(), cur++);
+                allocator_destroy(p_buf.second(), cur++);
         }
         p_len = 0;
     }
@@ -181,9 +178,9 @@ public:
     Vector &operator=(const Vector &v) {
         if (this == &v) return *this;
         clear();
-        if (octa::AllocatorPropagateOnContainerCopyAssignment<A>::value) {
+        if (AllocatorPropagateOnContainerCopyAssignment<A>::value) {
             if (p_buf.second() != v.p_buf.second()) {
-                octa::allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
+                allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
                 p_cap = 0;
             }
             p_buf.second() = v.p_buf.second();
@@ -196,13 +193,13 @@ public:
 
     Vector &operator=(Vector &&v) {
         clear();
-        octa::allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
-        if (octa::AllocatorPropagateOnContainerMoveAssignment<A>::value)
+        allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
+        if (AllocatorPropagateOnContainerMoveAssignment<A>::value)
             p_buf.second() = v.p_buf.second();
         p_len = v.p_len;
         p_cap = v.p_cap;
         p_buf.~VecPair();
-        new (&p_buf) VecPair(v.disown(), octa::move(v.p_buf.second()));
+        new (&p_buf) VecPair(v.disown(), move(v.p_buf.second()));
         return *this;
     }
 
@@ -210,13 +207,13 @@ public:
         clear();
         Size ilen = il.end() - il.begin();
         reserve(ilen);
-        if (octa::IsPod<T>()) {
+        if (IsPod<T>()) {
             memcpy(p_buf.first(), il.begin(), ilen);
         } else {
             Pointer tbuf = p_buf.first(), ibuf = il.begin(),
                 last = il.end();
             while (ibuf != last) {
-                octa::allocator_construct(p_buf.second(),
+                allocator_construct(p_buf.second(),
                     tbuf++, *ibuf++);
             }
         }
@@ -224,9 +221,9 @@ public:
         return *this;
     }
 
-    template<typename R, typename = octa::EnableIf<
-        octa::IsInputRange<R>::value &&
-        octa::IsConvertible<RangeReference<R>, Value>::value
+    template<typename R, typename = EnableIf<
+        IsInputRange<R>::value &&
+        IsConvertible<RangeReference<R>, Value>::value
     >> Vector &operator=(R range) {
         clear();
         ctor_from_range(range);
@@ -237,7 +234,7 @@ public:
         Size l = p_len;
         reserve(n);
         p_len = n;
-        if (octa::IsPod<T>()) {
+        if (IsPod<T>()) {
             for (Size i = l; i < p_len; ++i) {
                 p_buf.first()[i] = T(v);
             }
@@ -245,7 +242,7 @@ public:
             Pointer first = p_buf.first() + l;
             Pointer last  = p_buf.first() + p_len;
             while (first != last)
-                octa::allocator_construct(p_buf.second(), first++, v);
+                allocator_construct(p_buf.second(), first++, v);
         }
     }
 
@@ -253,25 +250,24 @@ public:
         if (n <= p_cap) return;
         Size oc = p_cap;
         if (!oc) {
-            p_cap = octa::max(n, Size(8));
+            p_cap = max(n, Size(8));
         } else {
             while (p_cap < n) p_cap *= 2;
         }
-        Pointer tmp = octa::allocator_allocate(p_buf.second(), p_cap);
+        Pointer tmp = allocator_allocate(p_buf.second(), p_cap);
         if (oc > 0) {
-            if (octa::IsPod<T>()) {
+            if (IsPod<T>()) {
                 memcpy(tmp, p_buf.first(), p_len * sizeof(T));
             } else {
                 Pointer cur = p_buf.first(), tcur = tmp,
                     last = tmp + p_len;
                 while (tcur != last) {
-                    octa::allocator_construct(p_buf.second(), tcur++,
-                        octa::move(*cur));
-                    octa::allocator_destroy(p_buf.second(), cur);
+                    allocator_construct(p_buf.second(), tcur++, move(*cur));
+                    allocator_destroy(p_buf.second(), cur);
                     ++cur;
                 }
             }
-            octa::allocator_deallocate(p_buf.second(), p_buf.first(), oc);
+            allocator_deallocate(p_buf.second(), p_buf.first(), oc);
         }
         p_buf.first() = tmp;
     }
@@ -290,36 +286,33 @@ public:
 
     T &push(const T &v) {
         if (p_len == p_cap) reserve(p_len + 1);
-        octa::allocator_construct(p_buf.second(),
-            &p_buf.first()[p_len], v);
+        allocator_construct(p_buf.second(), &p_buf.first()[p_len], v);
         return p_buf.first()[p_len++];
     }
 
     T &push(T &&v) {
         if (p_len == p_cap) reserve(p_len + 1);
-        octa::allocator_construct(p_buf.second(),
-            &p_buf.first()[p_len], octa::move(v));
+        allocator_construct(p_buf.second(), &p_buf.first()[p_len], move(v));
         return p_buf.first()[p_len++];
     }
 
     T &push() {
         if (p_len == p_cap) reserve(p_len + 1);
-        octa::allocator_construct(p_buf.second(), &p_buf.first()[p_len]);
+        allocator_construct(p_buf.second(), &p_buf.first()[p_len]);
         return p_buf.first()[p_len++];
     }
 
     template<typename ...U>
     T &emplace_back(U &&...args) {
         if (p_len == p_cap) reserve(p_len + 1);
-        octa::allocator_construct(p_buf.second(), &p_buf.first()[p_len],
-            octa::forward<U>(args)...);
+        allocator_construct(p_buf.second(), &p_buf.first()[p_len],
+            forward<U>(args)...);
         return p_buf.first()[p_len++];
     }
 
     void pop() {
-        if (!octa::IsPod<T>()) {
-            octa::allocator_destroy(p_buf.second(),
-                &p_buf.first()[--p_len]);
+        if (!IsPod<T>()) {
+            allocator_destroy(p_buf.second(), &p_buf.first()[--p_len]);
         } else {
             --p_len;
         }
@@ -356,7 +349,7 @@ public:
 
     Range insert(Size idx, T &&v) {
         insert_base(idx, 1);
-        p_buf.first()[idx] = octa::move(v);
+        p_buf.first()[idx] = move(v);
         return Range(&p_buf.first()[idx], &p_buf.first()[p_len]);
     }
 
@@ -407,7 +400,7 @@ public:
         octa::swap(p_len, v.p_len);
         octa::swap(p_cap, v.p_cap);
         octa::swap(p_buf.first(), v.p_buf.first());
-        if (octa::AllocatorPropagateOnContainerSwap<A>::value)
+        if (AllocatorPropagateOnContainerSwap<A>::value)
             octa::swap(p_buf.second(), v.p_buf.second());
     }
 

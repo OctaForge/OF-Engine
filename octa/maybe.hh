@@ -24,7 +24,7 @@ struct Nothing {
 constexpr Nothing nothing = Nothing(0);
 
 namespace detail {
-    template<typename T, bool = octa::IsTriviallyDestructible<T>::value>
+    template<typename T, bool = IsTriviallyDestructible<T>::value>
     class MaybeStorage {
     protected:
         using Value = T;
@@ -37,19 +37,19 @@ namespace detail {
         constexpr MaybeStorage(): p_null_state('\0') {}
 
         MaybeStorage(const MaybeStorage &v): p_engaged(v.p_engaged) {
-            if (p_engaged) ::new(octa::address_of(p_value)) Value(v.p_value);
+            if (p_engaged) ::new(address_of(p_value)) Value(v.p_value);
         }
 
         MaybeStorage(MaybeStorage &&v): p_engaged(v.p_engaged) {
             if (p_engaged)
-                ::new(octa::address_of(p_value)) Value(octa::move(v.p_value));
+                ::new(address_of(p_value)) Value(move(v.p_value));
         }
 
         constexpr MaybeStorage(const Value &v): p_value(v), p_engaged(true) {}
-        constexpr MaybeStorage(Value &&v): p_value(octa::move(v)), p_engaged(true) {}
+        constexpr MaybeStorage(Value &&v): p_value(move(v)), p_engaged(true) {}
 
-        template<typename ...A> constexpr MaybeStorage(octa::InPlace, A &&...args):
-            p_value(octa::forward<A>(args)...), p_engaged(true) {}
+        template<typename ...A> constexpr MaybeStorage(InPlace, A &&...args):
+            p_value(forward<A>(args)...), p_engaged(true) {}
 
         ~MaybeStorage() {
             if (p_engaged) p_value.~Value();
@@ -69,58 +69,58 @@ namespace detail {
         constexpr MaybeStorage(): p_null_state('\0') {}
 
         MaybeStorage(const MaybeStorage &v): p_engaged(v.p_engaged) {
-            if (p_engaged) ::new(octa::address_of(p_value)) Value(v.p_value);
+            if (p_engaged) ::new(address_of(p_value)) Value(v.p_value);
         }
 
         MaybeStorage(MaybeStorage &&v): p_engaged(v.p_engaged) {
             if (p_engaged)
-                ::new(octa::address_of(p_value)) Value(octa::move(v.p_value));
+                ::new(address_of(p_value)) Value(move(v.p_value));
         }
 
         constexpr MaybeStorage(const Value &v): p_value(v), p_engaged(true) {}
         constexpr MaybeStorage(Value &&v):
-            p_value(octa::move(v)), p_engaged(true) {}
+            p_value(move(v)), p_engaged(true) {}
 
         template<typename ...A>
-        constexpr MaybeStorage(octa::InPlace, A &&...args):
-            p_value(octa::forward<A>(args)...), p_engaged(true) {}
+        constexpr MaybeStorage(InPlace, A &&...args):
+            p_value(forward<A>(args)...), p_engaged(true) {}
     };
 }
 
 template<typename T>
-class Maybe: private octa::detail::MaybeStorage<T> {
-    using Base = octa::detail::MaybeStorage<T>;
+class Maybe: private detail::MaybeStorage<T> {
+    using Base = detail::MaybeStorage<T>;
 public:
     using Value = T;
 
-    static_assert(!octa::IsReference<T>::value,
+    static_assert(!IsReference<T>::value,
         "Initialization of Maybe with a reference type is not allowed.");
-    static_assert(!octa::IsSame<octa::RemoveCv<T>, octa::InPlace>::value,
+    static_assert(!IsSame<RemoveCv<T>, InPlace>::value,
         "Initialization of Maybe with InPlace is not allowed.");
-    static_assert(!octa::IsSame<octa::RemoveCv<T>, octa::Nothing>::value,
+    static_assert(!IsSame<RemoveCv<T>, Nothing>::value,
         "Initialization of Maybe with Nothing is not allowed.");
-    static_assert(octa::IsObject<T>::value,
+    static_assert(IsObject<T>::value,
         "Initialization of Maybe with non-object type is not allowed.");
-    static_assert(octa::IsDestructible<T>::value,
+    static_assert(IsDestructible<T>::value,
         "Initialization of Maybe with a non-destructible object is not allowed.");
 
     constexpr Maybe() {}
     Maybe(const Maybe &) = default;
     Maybe(Maybe &&) = default;
-    constexpr Maybe(octa::Nothing) {}
+    constexpr Maybe(Nothing) {}
     constexpr Maybe(const Value &v): Base(v) {}
-    constexpr Maybe(Value &&v): Base(octa::move(v)) {}
+    constexpr Maybe(Value &&v): Base(move(v)) {}
 
-    template<typename ...A, typename = octa::EnableIf<
-        octa::IsConstructible<T, A...>::value>>
-    constexpr explicit Maybe(octa::InPlace, A &&...args): Base(octa::in_place,
-        octa::forward<A>(args)...) {}
+    template<typename ...A, typename = EnableIf<
+        IsConstructible<T, A...>::value>>
+    constexpr explicit Maybe(InPlace, A &&...args): Base(in_place,
+        forward<A>(args)...) {}
 
-    template<typename U, typename ...A, typename = typename octa::EnableIf<
-        octa::IsConstructible<T, std::initializer_list<U> &, A...>::value>>
+    template<typename U, typename ...A, typename = typename EnableIf<
+        IsConstructible<T, std::initializer_list<U> &, A...>::value>>
     constexpr explicit
-    Maybe(octa::InPlace, std::initializer_list<U> il, A &&...args):
-        Base(octa::in_place, il, octa::forward<A>(args)...) {}
+    Maybe(InPlace, std::initializer_list<U> il, A &&...args):
+        Base(in_place, il, forward<A>(args)...) {}
 
     ~Maybe() = default;
 
@@ -139,7 +139,7 @@ public:
             if (this->p_engaged)
                 this->p_value.~Value();
             else
-                ::new(octa::address_of(this->p_value)) Value(v.p_value);
+                ::new(address_of(this->p_value)) Value(v.p_value);
             this->p_engaged = v.p_engaged;
         }
         return *this;
@@ -147,60 +147,58 @@ public:
 
     Maybe &operator=(Maybe &&v) {
         if (this->p_engaged == v.p_engaged) {
-            if (this->p_engaged) this->p_value = octa::move(v.p_value);
+            if (this->p_engaged) this->p_value = move(v.p_value);
         } else {
             if (this->p_engaged)
                 this->p_value.~Value();
             else {
-                ::new(octa::address_of(this->p_value))
-                    Value(octa::move(v.p_value));
+                ::new(address_of(this->p_value)) Value(move(v.p_value));
             }
             this->p_engaged = v.p_engaged;
         }
         return *this;
     }
 
-    template<typename U, typename = octa::EnableIf<
-        octa::IsSame<octa::RemoveReference<U>, Value>::value &&
-        octa::IsConstructible<Value, U>::value &&
-        octa::IsAssignable<Value &, U>::value
+    template<typename U, typename = EnableIf<
+        IsSame<RemoveReference<U>, Value>::value &&
+        IsConstructible<Value, U>::value &&
+        IsAssignable<Value &, U>::value
     >>
     Maybe &operator=(U &&v) {
         if (this->p_engaged) {
-            this->p_value = octa::forward<U>(v);
+            this->p_value = forward<U>(v);
         } else {
-            ::new(octa::address_of(this->p_value)) Value(octa::forward<U>(v));
+            ::new(address_of(this->p_value)) Value(forward<U>(v));
             this->p_engaged = true;
         }
         return *this;
     }
 
-    template<typename ...A, typename = octa::EnableIf<
-        octa::IsConstructible<Value, A...>::value
+    template<typename ...A, typename = EnableIf<
+        IsConstructible<Value, A...>::value
     >>
     void emplace(A &&...args) {
-        *this = octa::nothing;
-        ::new(octa::address_of(this->p_value))
-            Value(octa::forward<A>(args)...);
+        *this = nothing;
+        ::new(address_of(this->p_value)) Value(forward<A>(args)...);
         this->p_engaged = true;
     }
 
-    template<typename U, typename ...A, typename = octa::EnableIf<
-        octa::IsConstructible<Value, std::initializer_list<U> &, A...>::value
+    template<typename U, typename ...A, typename = EnableIf<
+        IsConstructible<Value, std::initializer_list<U> &, A...>::value
     >>
     void emplace(std::initializer_list<U> il, A &&...args) {
-        *this = octa::nothing;
-        ::new(octa::address_of(this->p_value))
-            Value(il, octa::forward<A>(args)...);
+        *this = nothing;
+        ::new(address_of(this->p_value))
+            Value(il, forward<A>(args)...);
         this->p_engaged = true;
     }
 
     constexpr const Value *operator->() const {
-        return octa::address_of(this->p_value);
+        return address_of(this->p_value);
     }
 
     Value *operator->() {
-        return octa::address_of(this->p_value);
+        return address_of(this->p_value);
     }
 
     constexpr const Value &operator*() const {
@@ -223,21 +221,21 @@ public:
 
     template<typename U>
     constexpr Value value_or(U &&v) const & {
-        static_assert(octa::IsCopyConstructible<Value>::value,
+        static_assert(IsCopyConstructible<Value>::value,
             "Maybe<T>::value_or: T must be copy constructible");
-        static_assert(octa::IsConvertible<U, Value>::value,
+        static_assert(IsConvertible<U, Value>::value,
             "Maybe<T>::value_or: U must be convertible to T");
-        return this->p_engaged ? this->p_value : Value(octa::forward<U>(v));
+        return this->p_engaged ? this->p_value : Value(forward<U>(v));
     }
 
     template<typename U>
     Value value_or(U &&v) && {
-        static_assert(octa::IsMoveConstructible<Value>::value,
+        static_assert(IsMoveConstructible<Value>::value,
             "Maybe<T>::value_or: T must be copy constructible");
-        static_assert(octa::IsConvertible<U, Value>::value,
+        static_assert(IsConvertible<U, Value>::value,
             "Maybe<T>::value_or: U must be convertible to T");
-        return this->p_engaged ? octa::move(this->p_value)
-                               : Value(octa::forward<U>(v));
+        return this->p_engaged ? move(this->p_value)
+                               : Value(forward<U>(v));
     }
 
     void swap(Maybe &v) {
@@ -245,19 +243,17 @@ public:
             if (this->p_engaged) octa::swap(this->p_value, v.p_value);
         } else {
             if (this->p_engaged) {
-                ::new(octa::address_of(v.p_value))
-                    Value(octa::move(this->p_value));
+                ::new(address_of(v.p_value)) Value(move(this->p_value));
                 this->p_value.~Value();
             } else {
-                ::new(octa::address_of(this->p_value))
-                    Value(octa::move(v.p_value));
+                ::new(address_of(this->p_value)) Value(move(v.p_value));
                 v.p_value.~Value();
             }
             octa::swap(this->p_engaged, v.p_engaged);
         }
     }
 
-    octa::Size to_hash() const {
+    Size to_hash() const {
         return this->p_engaged ? octa::ToHash<T>()(this->p_value) : 0;
     }
 };
@@ -380,12 +376,12 @@ static inline constexpr bool operator!=(const T &b, const Maybe<T> &a) {
 
 template<typename T>
 static inline constexpr bool operator<(const Maybe<T> &a, const T &b) {
-    return bool(a) ? octa::Less<T>()(*a, b) : true;
+    return bool(a) ? Less<T>()(*a, b) : true;
 }
 
 template<typename T>
 static inline constexpr bool operator<(const T &b, const Maybe<T> &a) {
-    return bool(a) ? octa::Less<T>()(b, *a) : false;
+    return bool(a) ? Less<T>()(b, *a) : false;
 }
 
 template<typename T>
@@ -421,8 +417,8 @@ static inline constexpr bool operator>=(const T &b, const Maybe<T> &a) {
 /* make maybe */
 
 template<typename T>
-constexpr Maybe<octa::Decay<T>> make_maybe(T &&v) {
-    return Maybe<octa::Decay<T>>(octa::forward<T>(v));
+constexpr Maybe<Decay<T>> make_maybe(T &&v) {
+    return Maybe<Decay<T>>(forward<T>(v));
 }
 
 } /* namespace octa */

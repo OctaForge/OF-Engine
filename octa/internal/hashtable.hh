@@ -24,15 +24,15 @@ namespace detail {
     };
 
     template<typename R>
-    static inline octa::Size estimate_hrsize(const R &range,
-        octa::EnableIf<octa::IsFiniteRandomAccessRange<R>::value, bool> = true
+    static inline Size estimate_hrsize(const R &range,
+        EnableIf<IsFiniteRandomAccessRange<R>::value, bool> = true
     ) {
         return range.size();
     }
 
     template<typename R>
-    static inline octa::Size estimate_hrsize(const R &,
-        octa::EnableIf<!octa::IsFiniteRandomAccessRange<R>::value, bool> = true
+    static inline Size estimate_hrsize(const R &,
+        EnableIf<!IsFiniteRandomAccessRange<R>::value, bool> = true
     ) {
         /* we have no idea how big the range actually is */
         return 16;
@@ -40,12 +40,12 @@ namespace detail {
 }
 
 template<typename T>
-struct HashRange: octa::InputRange<HashRange<T>, octa::ForwardRangeTag, T> {
+struct HashRange: InputRange<HashRange<T>, ForwardRangeTag, T> {
 private:
     template<typename U>
     friend struct HashRange;
 
-    using Chain = octa::detail::HashChain<T>;
+    using Chain = detail::HashChain<T>;
 
     Chain **p_beg;
     Chain **p_end;
@@ -57,7 +57,7 @@ private:
         if (p_beg != p_end) p_node = p_beg[0];
     }
 public:
-    HashRange() = delete;
+    HashRange(): p_beg(nullptr), p_end(nullptr), p_node(nullptr) {}
     HashRange(const HashRange &v): p_beg(v.p_beg), p_end(v.p_end),
         p_node(v.p_node) {}
     HashRange(Chain **beg, Chain **end): p_beg(beg), p_end(end), p_node() {
@@ -67,9 +67,9 @@ public:
         p_node(node) {}
 
     template<typename U>
-    HashRange(const HashRange<U> &v, octa::EnableIf<
-        octa::IsSame<RemoveCv<T>, RemoveCv<U>>::value &&
-        octa::IsConvertible<U *, T *>::value, bool
+    HashRange(const HashRange<U> &v, EnableIf<
+        IsSame<RemoveCv<T>, RemoveCv<U>>::value &&
+        IsConvertible<U *, T *>::value, bool
     > = true): p_beg((Chain **)v.p_beg), p_end((Chain **)v.p_end),
         p_node((Chain *)v.p_node) {}
 
@@ -99,22 +99,22 @@ public:
 };
 
 template<typename T>
-struct BucketRange: octa::InputRange<BucketRange<T>, octa::ForwardRangeTag, T> {
+struct BucketRange: InputRange<BucketRange<T>, ForwardRangeTag, T> {
 private:
     template<typename U>
     friend struct BucketRange;
 
-    using Chain = octa::detail::HashChain<T>;
+    using Chain = detail::HashChain<T>;
     Chain *p_node;
 public:
-    BucketRange() = delete;
+    BucketRange(): p_node(nullptr) {}
     BucketRange(Chain *node): p_node(node) {}
     BucketRange(const BucketRange &v): p_node(v.p_node) {}
 
     template<typename U>
-    BucketRange(const BucketRange<U> &v, octa::EnableIf<
-        octa::IsSame<RemoveCv<T>, RemoveCv<U>>::value &&
-        octa::IsConvertible<U *, T *>::value, bool
+    BucketRange(const BucketRange<U> &v, EnableIf<
+        IsSame<RemoveCv<T>, RemoveCv<U>>::value &&
+        IsConvertible<U *, T *>::value, bool
     > = true): p_node((Chain *)v.p_node) {}
 
     BucketRange &operator=(const BucketRange &v) {
@@ -149,51 +149,51 @@ namespace detail {
         bool Multihash
     > struct Hashtable {
 private:
-        static constexpr octa::Size CHUNKSIZE = 64;
+        static constexpr Size CHUNKSIZE = 64;
 
-        using Chain = octa::detail::HashChain<E>;
+        using Chain = detail::HashChain<E>;
 
         struct Chunk {
             Chain chains[CHUNKSIZE];
             Chunk *next;
         };
 
-        octa::Size p_size;
-        octa::Size p_len;
+        Size p_size;
+        Size p_len;
 
         Chunk *p_chunks;
         Chain *p_unused;
 
-        using CPA = octa::AllocatorRebind<A, Chain *>;
-        using CHA = octa::AllocatorRebind<A, Chunk>;
+        using CPA = AllocatorRebind<A, Chain *>;
+        using CHA = AllocatorRebind<A, Chunk>;
 
-        using CoreAllocPair = octa::detail::CompressedPair<CPA, CHA>;
-        using AllocPair = octa::detail::CompressedPair<A, CoreAllocPair>;
-        using FuncPair = octa::detail::CompressedPair<H, C>;
-        using FAPair = octa::detail::CompressedPair<AllocPair, FuncPair>;
-        using DataPair = octa::detail::CompressedPair<Chain **, FAPair>;
+        using CoreAllocPair = detail::CompressedPair<CPA, CHA>;
+        using AllocPair = detail::CompressedPair<A, CoreAllocPair>;
+        using FuncPair = detail::CompressedPair<H, C>;
+        using FAPair = detail::CompressedPair<AllocPair, FuncPair>;
+        using DataPair = detail::CompressedPair<Chain **, FAPair>;
 
-        using Range = octa::HashRange<E>;
-        using ConstRange = octa::HashRange<const E>;
-        using LocalRange = octa::BucketRange<E>;
-        using ConstLocalRange = octa::BucketRange<const E>;
+        using Range = HashRange<E>;
+        using ConstRange = HashRange<const E>;
+        using LocalRange = BucketRange<E>;
+        using ConstLocalRange = BucketRange<const E>;
 
         DataPair p_data;
 
         float p_maxlf;
 
-        Range iter_from(Chain *c, octa::Size h) {
+        Range iter_from(Chain *c, Size h) {
             return Range(p_data.first() + h + 1,
                 p_data.first() + bucket_count(), c);
         }
-        ConstRange iter_from(Chain *c, octa::Size h) const {
-            using RChain = octa::detail::HashChain<const E>;
+        ConstRange iter_from(Chain *c, Size h) const {
+            using RChain = detail::HashChain<const E>;
             return ConstRange((RChain **)(p_data.first() + h + 1),
                               (RChain **)(p_data.first() + bucket_count()),
                               (RChain *)c);
         }
 
-        bool find(const K &key, octa::Size &h, Chain *&oc) const {
+        bool find(const K &key, Size &h, Chain *&oc) const {
             if (!p_size) return false;
             h = get_hash()(key) & (p_size - 1);
             for (Chain *c = p_data.first()[h]; c; c = c->next) {
@@ -205,10 +205,10 @@ private:
             return false;
         }
 
-        Chain *insert(octa::Size h) {
+        Chain *insert(Size h) {
             if (!p_unused) {
-                Chunk *chunk = octa::allocator_allocate(get_challoc(), 1);
-                octa::allocator_construct(get_challoc(), chunk);
+                Chunk *chunk = allocator_allocate(get_challoc(), 1);
+                allocator_construct(get_challoc(), chunk);
                 chunk->next = p_chunks;
                 p_chunks = chunk;
                 for (Size i = 0; i < (CHUNKSIZE - 1); ++i)
@@ -227,12 +227,12 @@ private:
         void delete_chunks(Chunk *chunks) {
             for (Chunk *nc; chunks; chunks = nc) {
                 nc = chunks->next;
-                octa::allocator_destroy(get_challoc(), chunks);
-                octa::allocator_deallocate(get_challoc(), chunks, 1);
+                allocator_destroy(get_challoc(), chunks);
+                allocator_deallocate(get_challoc(), chunks, 1);
             }
         }
 
-        T *access_base(const K &key, octa::Size &h) const {
+        T *access_base(const K &key, Size &h) const {
             if (!p_size) return NULL;
             h = get_hash()(key) & (p_size - 1);
             for (Chain *c = p_data.first()[h]; c; c = c->next) {
@@ -242,23 +242,23 @@ private:
             return NULL;
         }
 
-        void rehash_ahead(octa::Size n) {
+        void rehash_ahead(Size n) {
             if (!bucket_count())
                 reserve(n);
             else if ((float(size() + n) / bucket_count()) > max_load_factor())
-                rehash(octa::Size((size() + 1) / max_load_factor()) * 2);
+                rehash(Size((size() + 1) / max_load_factor()) * 2);
         }
 
 protected:
         template<typename U>
-        T &insert(octa::Size h, U &&key) {
+        T &insert(Size h, U &&key) {
             Chain *c = insert(h);
-            B::set_key(c->value, octa::forward<U>(key), get_alloc());
+            B::set_key(c->value, forward<U>(key), get_alloc());
             return B::get_data(c->value);
         }
 
         T &access_or_insert(const K &key) {
-            octa::Size h = 0;
+            Size h = 0;
             T *v = access_base(key, h);
             if (v) return *v;
             rehash_ahead(1);
@@ -266,22 +266,22 @@ protected:
         }
 
         T &access_or_insert(K &&key) {
-            octa::Size h = 0;
+            Size h = 0;
             T *v = access_base(key, h);
             if (v) return *v;
             rehash_ahead(1);
-            return insert(h, octa::move(key));
+            return insert(h, move(key));
         }
 
         T &access(const K &key) const {
-            octa::Size h;
+            Size h;
             return *access_base(key, h);
         }
 
         template<typename R>
         void assign_range(R range) {
             clear();
-            reserve_at_least(octa::detail::estimate_hrsize(range));
+            reserve_at_least(detail::estimate_hrsize(range));
             for (; !range.empty(); range.pop_front())
                 emplace(range.front());
             rehash_up();
@@ -311,13 +311,13 @@ protected:
             return p_data.second().first().second().second();
         }
 
-        Hashtable(octa::Size size, const H &hf, const C &eqf, const A &alloc):
+        Hashtable(Size size, const H &hf, const C &eqf, const A &alloc):
         p_size(size), p_len(0), p_chunks(nullptr), p_unused(nullptr),
         p_data(nullptr, FAPair(AllocPair(alloc, CoreAllocPair(alloc, alloc)),
             FuncPair(hf, eqf))),
         p_maxlf(1.0f) {
             if (!size) return;
-            p_data.first() = octa::allocator_allocate(get_cpalloc(), size);
+            p_data.first() = allocator_allocate(get_cpalloc(), size);
             memset(p_data.first(), 0, size * sizeof(Chain *));
         }
 
@@ -327,22 +327,22 @@ protected:
             FuncPair(ht.get_hash(), ht.get_eq()))),
         p_maxlf(ht.p_maxlf) {
             if (!p_size) return;
-            p_data.first() = octa::allocator_allocate(get_cpalloc(), p_size);
+            p_data.first() = allocator_allocate(get_cpalloc(), p_size);
             memset(p_data.first(), 0, p_size * sizeof(Chain *));
             Chain **och = ht.p_data.first();
-            for (octa::Size h = 0; h < p_size; ++h) {
+            for (Size h = 0; h < p_size; ++h) {
                 Chain *oc = och[h];
                 for (; oc; oc = oc->next) {
                     Chain *nc = insert(h);
-                    octa::allocator_destroy(get_alloc(), &nc->value);
-                    octa::allocator_construct(get_alloc(), &nc->value, oc->value);
+                    allocator_destroy(get_alloc(), &nc->value);
+                    allocator_construct(get_alloc(), &nc->value, oc->value);
                 }
             }
         }
 
         Hashtable(Hashtable &&ht): p_size(ht.p_size), p_len(ht.p_len),
         p_chunks(ht.p_chunks), p_unused(ht.p_unused),
-        p_data(octa::move(ht.p_data)), p_maxlf(ht.p_maxlf) {
+        p_data(move(ht.p_data)), p_maxlf(ht.p_maxlf) {
             ht.p_size = ht.p_len = 0;
             ht.p_chunks = nullptr;
             ht.p_unused = nullptr;
@@ -368,10 +368,10 @@ protected:
             p_len = 0;
             p_chunks = nullptr;
             p_unused = nullptr;
-            p_data.first() = octa::allocator_allocate(get_cpalloc(), p_size);
+            p_data.first() = allocator_allocate(get_cpalloc(), p_size);
             memset(p_data.first(), 0, p_size * sizeof(Chain *));
             Chain **och = ht.p_data.first();
-            for (octa::Size h = 0; h < p_size; ++h) {
+            for (Size h = 0; h < p_size; ++h) {
                 Chain *oc = och[h];
                 for (; oc; oc = oc->next) {
                     Chain *nc = insert(h);
@@ -382,11 +382,11 @@ protected:
 
         Hashtable &operator=(const Hashtable &ht) {
             clear();
-            if (octa::AllocatorPropagateOnContainerCopyAssignment<A>::value) {
+            if (AllocatorPropagateOnContainerCopyAssignment<A>::value) {
                 if ((get_cpalloc() != ht.get_cpalloc()) && p_size) {
-                    octa::allocator_deallocate(get_cpalloc(),
+                    allocator_deallocate(get_cpalloc(),
                         p_data.first(), p_size);
-                    p_data.first() = octa::allocator_allocate(get_cpalloc(),
+                    p_data.first() = allocator_allocate(get_cpalloc(),
                         p_size);
                     memset(p_data.first(), 0, p_size * sizeof(Chain *));
                 }
@@ -407,18 +407,18 @@ protected:
             octa::swap(p_unused, ht.p_unused);
             octa::swap(p_data.first(), ht.p_data.first());
             octa::swap(p_data.second().second(), ht.p_data.second().second());
-            if (octa::AllocatorPropagateOnContainerMoveAssignment<A>::value)
+            if (AllocatorPropagateOnContainerMoveAssignment<A>::value)
                 octa::swap(p_data.second().first(), ht.p_data.second().first());
             return *this;
         }
 
         void rehash_up() {
             if (load_factor() <= max_load_factor()) return;
-            rehash(octa::Size(size() / max_load_factor()) * 2);
+            rehash(Size(size() / max_load_factor()) * 2);
         }
 
-        void reserve_at_least(octa::Size count) {
-            octa::Size nc = octa::Size(ceil(count / max_load_factor()));
+        void reserve_at_least(Size count) {
+            Size nc = Size(ceil(count / max_load_factor()));
             if (p_size > nc) return;
             rehash(nc);
         }
@@ -430,13 +430,13 @@ protected:
             octa::swap(p_unused, ht.p_unused);
             octa::swap(p_data.first(), ht.p_data.first());
             octa::swap(p_data.second().second(), ht.p_data.second().second());
-            if (octa::AllocatorPropagateOnContainerSwap<A>::value)
+            if (AllocatorPropagateOnContainerSwap<A>::value)
                 octa::swap(p_data.second().first(), ht.p_data.second().first());
         }
 
 public:
         ~Hashtable() {
-            if (p_size) octa::allocator_deallocate(get_cpalloc(),
+            if (p_size) allocator_deallocate(get_cpalloc(),
                 p_data.first(), p_size);
             delete_chunks(p_chunks);
         }
@@ -454,18 +454,18 @@ public:
         }
 
         bool empty() const { return p_len == 0; }
-        octa::Size size() const { return p_len; }
+        Size size() const { return p_len; }
         Size max_size() const { return Size(~0) / sizeof(E); }
 
-        octa::Size bucket_count() const { return p_size; }
-        octa::Size max_bucket_count() const { return Size(~0) / sizeof(Chain); }
+        Size bucket_count() const { return p_size; }
+        Size max_bucket_count() const { return Size(~0) / sizeof(Chain); }
 
-        octa::Size bucket(const K &key) const {
+        Size bucket(const K &key) const {
             return get_hash()(key) & (p_size - 1);
         }
 
-        octa::Size bucket_size(octa::Size n) const {
-            octa::Size ret = 0;
+        Size bucket_size(Size n) const {
+            Size ret = 0;
             if (ret >= p_size) return ret;
             Chain *c = p_data.first()[n];
             if (!c) return ret;
@@ -475,16 +475,16 @@ public:
         }
 
         template<typename ...Args>
-        octa::Pair<Range, bool> emplace(Args &&...args) {
+        Pair<Range, bool> emplace(Args &&...args) {
             rehash_ahead(1);
-            E elem(octa::forward<Args>(args)...);
-            octa::Size h = get_hash()(B::get_key(elem)) & (p_size - 1);
+            E elem(forward<Args>(args)...);
+            Size h = get_hash()(B::get_key(elem)) & (p_size - 1);
             if (Multihash) {
                 /* multihash: always insert */
                 Chain *ch = insert(h);
                 B::swap_elem(ch->value, elem);
                 Chain **hch = p_data.first();
-                return octa::make_pair(Range(hch + h + 1, hch + bucket_count(),
+                return make_pair(Range(hch + h + 1, hch + bucket_count(),
                     ch), true);
             }
             Chain *found = nullptr;
@@ -501,14 +501,14 @@ public:
                 B::swap_elem(found->value, elem);
             }
             Chain **hch = p_data.first();
-            return octa::make_pair(Range(hch + h + 1, hch + bucket_count(),
+            return make_pair(Range(hch + h + 1, hch + bucket_count(),
                 found), ins);
         }
 
-        octa::Size erase(const K &key) {
+        Size erase(const K &key) {
             if (!p_len) return 0;
-            octa::Size olen = p_len;
-            octa::Size h = get_hash()(key) & (p_size - 1);
+            Size olen = p_len;
+            Size h = get_hash()(key) & (p_size - 1);
             Chain **p = &p_data.first()[h], *c = *p;
             while (c) {
                 if (get_eq()(key, B::get_key(c->value))) {
@@ -516,8 +516,8 @@ public:
                     *p = c->next;
                     c->next = p_unused;
                     p_unused = c;
-                    octa::allocator_destroy(get_alloc(), &c->value);
-                    octa::allocator_construct(get_alloc(), &c->value);
+                    allocator_destroy(get_alloc(), &c->value);
+                    allocator_construct(get_alloc(), &c->value);
                     if (!Multihash) return 1;
                 } else {
                     p = &c->next;
@@ -527,10 +527,10 @@ public:
             return olen - p_len;
         }
 
-        octa::Size count(const K &key) {
+        Size count(const K &key) {
             if (!p_len) return 0;
-            octa::Size h = get_hash()(key) & (p_size - 1);
-            octa::Size ret = 0;
+            Size h = get_hash()(key) & (p_size - 1);
+            Size ret = 0;
             for (Chain *c = p_data.first()[h]; c; c = c->next)
                 if (get_eq()(key, B::get_key(c->value))) {
                     ++ret;
@@ -540,14 +540,14 @@ public:
         }
 
         Range find(const K &key) {
-            octa::Size h = 0;
+            Size h = 0;
             Chain *c;
             if (find(key, h, c)) return iter_from(c, h);
             return Range();
         }
 
         ConstRange find(const K &key) const {
-            octa::Size h = 0;
+            Size h = 0;
             Chain *c;
             if (find(key, h, c)) return iter_from(c, h);
             return ConstRange();
@@ -557,21 +557,21 @@ public:
         float max_load_factor() const { return p_maxlf; }
         void max_load_factor(float lf) { p_maxlf = lf; }
 
-        void rehash(octa::Size count) {
-            octa::Size fbcount = octa::Size(p_len / max_load_factor());
+        void rehash(Size count) {
+            Size fbcount = Size(p_len / max_load_factor());
             if (fbcount > count) count = fbcount;
 
             Chain **och = p_data.first();
-            Chain **nch = octa::allocator_allocate(get_cpalloc(), count);
+            Chain **nch = allocator_allocate(get_cpalloc(), count);
             memset(nch, 0, count * sizeof(Chain *));
             p_data.first() = nch;
 
-            octa::Size osize = p_size;
+            Size osize = p_size;
             p_size = count;
 
-            for (octa::Size i = 0; i < osize; ++i) {
+            for (Size i = 0; i < osize; ++i) {
                 for (Chain *oc = och[i]; oc;) {
-                    octa::Size h = get_hash()(B::get_key(oc->value)) & (p_size - 1);
+                    Size h = get_hash()(B::get_key(oc->value)) & (p_size - 1);
                     Chain *nxc = oc->next;
                     oc->next = nch[h];
                     nch[h] = oc;
@@ -579,39 +579,39 @@ public:
                 }
             }
 
-            if (och && osize) octa::allocator_deallocate(get_cpalloc(),
+            if (och && osize) allocator_deallocate(get_cpalloc(),
                 och, osize);
         }
 
-        void reserve(octa::Size count) {
-            rehash(octa::Size(ceil(count / max_load_factor())));
+        void reserve(Size count) {
+            rehash(Size(ceil(count / max_load_factor())));
         }
 
         Range iter() {
             return Range(p_data.first(), p_data.first() + bucket_count());
         }
         ConstRange iter() const {
-            using Chain = octa::detail::HashChain<const E>;
+            using Chain = detail::HashChain<const E>;
             return ConstRange((Chain **)p_data.first(),
                               (Chain **)(p_data.first() + bucket_count()));
         }
         ConstRange citer() const {
-            using Chain = octa::detail::HashChain<const E>;
+            using Chain = detail::HashChain<const E>;
             return ConstRange((Chain **)p_data.first(),
                               (Chain **)(p_data.first() + bucket_count()));
         }
 
-        LocalRange iter(octa::Size n) {
+        LocalRange iter(Size n) {
             if (n >= p_size) return LocalRange();
             return LocalRange(p_data.first()[n]);
         }
-        ConstLocalRange iter(octa::Size n) const {
-            using Chain = octa::detail::HashChain<const E>;
+        ConstLocalRange iter(Size n) const {
+            using Chain = detail::HashChain<const E>;
             if (n >= p_size) return ConstLocalRange();
             return ConstLocalRange((Chain *)p_data.first()[n]);
         }
-        ConstLocalRange citer(octa::Size n) const {
-            using Chain = octa::detail::HashChain<const E>;
+        ConstLocalRange citer(Size n) const {
+            using Chain = detail::HashChain<const E>;
             if (n >= p_size) return ConstLocalRange();
             return ConstLocalRange((Chain *)p_data.first()[n]);
         }

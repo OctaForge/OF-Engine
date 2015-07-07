@@ -96,8 +96,8 @@ template<typename T> BinaryNegate<T> not2(const T &fn) {
 
 /* endian swap */
 
-template<typename T, octa::Size N = sizeof(T),
-    bool IsNum = octa::IsArithmetic<T>::value
+template<typename T, Size N = sizeof(T),
+    bool IsNum = IsArithmetic<T>::value
 > struct EndianSwap;
 
 template<typename T>
@@ -107,7 +107,7 @@ struct EndianSwap<T, 2, true> {
     T operator()(T v) const {
         union { T iv; uint16_t sv; } u;
         u.iv = v;
-        u.sv = octa::endian_swap16(u.sv);
+        u.sv = endian_swap16(u.sv);
         return u.iv;
     }
 };
@@ -119,7 +119,7 @@ struct EndianSwap<T, 4, true> {
     T operator()(T v) const {
         union { T iv; uint32_t sv; } u;
         u.iv = v;
-        u.sv = octa::endian_swap32(u.sv);
+        u.sv = endian_swap32(u.sv);
         return u.iv;
     }
 };
@@ -131,7 +131,7 @@ struct EndianSwap<T, 8, true> {
     T operator()(T v) const {
         union { T iv; uint64_t sv; } u;
         u.iv = v;
-        u.sv = octa::endian_swap64(u.sv);
+        u.sv = endian_swap64(u.sv);
         return u.iv;
     }
 };
@@ -140,8 +140,8 @@ template<typename T>
 T endian_swap(T x) { return EndianSwap<T>()(x); }
 
 namespace detail {
-    template<typename T, octa::Size N = sizeof(T),
-        bool IsNum = octa::IsArithmetic<T>::value
+    template<typename T, Size N = sizeof(T),
+        bool IsNum = IsArithmetic<T>::value
     > struct EndianSame;
 
     template<typename T>
@@ -165,11 +165,11 @@ namespace detail {
 }
 
 #if OCTA_BYTE_ORDER == OCTA_ENDIAN_LIL
-template<typename T> struct FromLilEndian: octa::detail::EndianSame<T> {};
+template<typename T> struct FromLilEndian: detail::EndianSame<T> {};
 template<typename T> struct FromBigEndian: EndianSwap<T> {};
 #else
 template<typename T> struct FromLilEndian: EndianSwap<T> {};
-template<typename T> struct FromBigEndian: octa::detail::EndianSame<T> {};
+template<typename T> struct FromBigEndian: detail::EndianSame<T> {};
 #endif
 
 template<typename T> T from_lil_endian(T x) { return FromLilEndian<T>()(x); }
@@ -179,9 +179,9 @@ template<typename T> T from_big_endian(T x) { return FromBigEndian<T>()(x); }
 
 template<typename T> struct ToHash {
     using Argument = T;
-    using Result = octa::Size;
+    using Result = Size;
 
-    octa::Size operator()(const T &v) const {
+    Size operator()(const T &v) const {
         return v.to_hash();
     }
 };
@@ -189,15 +189,15 @@ template<typename T> struct ToHash {
 namespace detail {
     template<typename T> struct ToHashBase {
         using Argument = T;
-        using Result = octa::Size;
+        using Result = Size;
 
-        octa::Size operator()(T v) const {
-            return octa::Size(v);
+        Size operator()(T v) const {
+            return Size(v);
         }
     };
 }
 
-#define OCTA_HASH_BASIC(T) template<> struct ToHash<T>: octa::detail::ToHashBase<T> {};
+#define OCTA_HASH_BASIC(T) template<> struct ToHash<T>: detail::ToHashBase<T> {};
 
 OCTA_HASH_BASIC(bool)
 OCTA_HASH_BASIC(char)
@@ -205,35 +205,35 @@ OCTA_HASH_BASIC(short)
 OCTA_HASH_BASIC(int)
 OCTA_HASH_BASIC(long)
 
-OCTA_HASH_BASIC(octa::sbyte)
-OCTA_HASH_BASIC(octa::byte)
-OCTA_HASH_BASIC(octa::ushort)
-OCTA_HASH_BASIC(octa::uint)
-OCTA_HASH_BASIC(octa::ulong)
+OCTA_HASH_BASIC(sbyte)
+OCTA_HASH_BASIC(byte)
+OCTA_HASH_BASIC(ushort)
+OCTA_HASH_BASIC(uint)
+OCTA_HASH_BASIC(ulong)
 
-OCTA_HASH_BASIC(octa::Char16)
-OCTA_HASH_BASIC(octa::Char32)
-OCTA_HASH_BASIC(octa::Wchar)
+OCTA_HASH_BASIC(Char16)
+OCTA_HASH_BASIC(Char32)
+OCTA_HASH_BASIC(Wchar)
 
 #undef OCTA_HASH_BASIC
 
 namespace detail {
-    static inline Size mem_hash(const void *p, octa::Size l) {
-        const octa::byte *d = (const octa::byte *)p;
-        octa::Size h = 5381;
+    static inline Size mem_hash(const void *p, Size l) {
+        const byte *d = (const byte *)p;
+        Size h = 5381;
         for (Size i = 0; i < l; ++i) h = ((h << 5) + h) ^ d[i];
         return h;
     }
 
-    template<typename T, octa::Size = sizeof(T) / sizeof(octa::Size)>
+    template<typename T, Size = sizeof(T) / sizeof(Size)>
     struct ScalarHash;
 
     template<typename T> struct ScalarHash<T, 0> {
         using Argument = T;
-        using Result = octa::Size;
+        using Result = Size;
 
-        octa::Size operator()(T v) const {
-            union { T v; octa::Size h; } u;
+        Size operator()(T v) const {
+            union { T v; Size h; } u;
             u.h = 0;
             u.v = v;
             return u.h;
@@ -242,10 +242,10 @@ namespace detail {
 
     template<typename T> struct ScalarHash<T, 1> {
         using Argument = T;
-        using Result = octa::Size;
+        using Result = Size;
 
-        octa::Size operator()(T v) const {
-            union { T v; octa::Size h; } u;
+        Size operator()(T v) const {
+            union { T v; Size h; } u;
             u.v = v;
             return u.h;
         }
@@ -253,10 +253,10 @@ namespace detail {
 
     template<typename T> struct ScalarHash<T, 2> {
         using Argument = T;
-        using Result = octa::Size;
+        using Result = Size;
 
-        octa::Size operator()(T v) const {
-            union { T v; struct { octa::Size h1, h2; }; } u;
+        Size operator()(T v) const {
+            union { T v; struct { Size h1, h2; }; } u;
             u.v = v;
             return mem_hash((const void *)&u, sizeof(u));
         }
@@ -264,10 +264,10 @@ namespace detail {
 
     template<typename T> struct ScalarHash<T, 3> {
         using Argument = T;
-        using Result = octa::Size;
+        using Result = Size;
 
-        octa::Size operator()(T v) const {
-            union { T v; struct { octa::Size h1, h2, h3; }; } u;
+        Size operator()(T v) const {
+            union { T v; struct { Size h1, h2, h3; }; } u;
             u.v = v;
             return mem_hash((const void *)&u, sizeof(u));
         }
@@ -275,76 +275,76 @@ namespace detail {
 
     template<typename T> struct ScalarHash<T, 4> {
         using Argument = T;
-        using Result = octa::Size;
+        using Result = Size;
 
-        octa::Size operator()(T v) const {
-            union { T v; struct { octa::Size h1, h2, h3, h4; }; } u;
+        Size operator()(T v) const {
+            union { T v; struct { Size h1, h2, h3, h4; }; } u;
             u.v = v;
             return mem_hash((const void *)&u, sizeof(u));
         }
     };
 } /* namespace detail */
 
-template<> struct ToHash<octa::llong>: octa::detail::ScalarHash<octa::llong> {};
-template<> struct ToHash<octa::ullong>: octa::detail::ScalarHash<octa::ullong> {};
+template<> struct ToHash<llong>: detail::ScalarHash<llong> {};
+template<> struct ToHash<ullong>: detail::ScalarHash<ullong> {};
 
-template<> struct ToHash<float>: octa::detail::ScalarHash<float> {
-    octa::Size operator()(float v) const {
+template<> struct ToHash<float>: detail::ScalarHash<float> {
+    Size operator()(float v) const {
         if (v == 0) return 0;
-        return octa::detail::ScalarHash<float>::operator()(v);
+        return detail::ScalarHash<float>::operator()(v);
     }
 };
 
-template<> struct ToHash<double>: octa::detail::ScalarHash<double> {
-    octa::Size operator()(double v) const {
+template<> struct ToHash<double>: detail::ScalarHash<double> {
+    Size operator()(double v) const {
         if (v == 0) return 0;
-        return octa::detail::ScalarHash<double>::operator()(v);
+        return detail::ScalarHash<double>::operator()(v);
     }
 };
 
-template<> struct ToHash<octa::ldouble>: octa::detail::ScalarHash<octa::ldouble> {
-    octa::Size operator()(octa::ldouble v) const {
+template<> struct ToHash<ldouble>: detail::ScalarHash<ldouble> {
+    Size operator()(ldouble v) const {
         if (v == 0) return 0;
 #ifdef __i386__
-        union { octa::ldouble v; struct { octa::Size h1, h2, h3, h4; }; } u;
+        union { ldouble v; struct { Size h1, h2, h3, h4; }; } u;
         u.h1 = u.h2 = u.h3 = u.h4 = 0;
         u.v = v;
         return (u.h1 ^ u.h2 ^ u.h3 ^ u.h4);
 #else
 #ifdef __x86_64__
-        union { octa::ldouble v; struct { octa::Size h1, h2; }; } u;
+        union { ldouble v; struct { Size h1, h2; }; } u;
         u.h1 = u.h2 = 0;
         u.v = v;
         return (u.h1 ^ u.h2);
 #else
-        return octa::detail::ScalarHash<octa::ldouble>::operator()(v);
+        return detail::ScalarHash<ldouble>::operator()(v);
 #endif
 #endif
     }
 };
 
 namespace detail {
-    template<typename T, bool = octa::IsSame<octa::RemoveConst<T>, char>::value>
+    template<typename T, bool = IsSame<RemoveConst<T>, char>::value>
     struct ToHashPtr {
         using Argument = T *;
-        using Result = octa::Size;
-        octa::Size operator()(T *v) const {
-            union { T *v; octa::Size h; } u;
+        using Result = Size;
+        Size operator()(T *v) const {
+            union { T *v; Size h; } u;
             u.v = v;
-            return octa::detail::mem_hash((const void *)&u, sizeof(u));
+            return detail::mem_hash((const void *)&u, sizeof(u));
         }
     };
 
     template<typename T> struct ToHashPtr<T, true> {
         using Argument = T *;
-        using Result = octa::Size;
-        octa::Size operator()(T *v) const {
-            return octa::detail::mem_hash(v, strlen(v));
+        using Result = Size;
+        Size operator()(T *v) const {
+            return detail::mem_hash(v, strlen(v));
         }
     };
 }
 
-template<typename T> struct ToHash<T *>: octa::detail::ToHashPtr<T> {};
+template<typename T> struct ToHash<T *>: detail::ToHashPtr<T> {};
 
 template<typename T>
 typename ToHash<T>::Result to_hash(const T &v) {
@@ -446,8 +446,8 @@ namespace detail {
 } /* namespace detail */
 
 template<typename R, typename T>
-octa::detail::MemFn<R, T> mem_fn(R T:: *ptr) {
-    return octa::detail::MemFn<R, T>(ptr);
+detail::MemFn<R, T> mem_fn(R T:: *ptr) {
+    return detail::MemFn<R, T>(ptr);
 }
 
 /* function impl
@@ -465,7 +465,7 @@ namespace detail {
     struct FunctorInPlace {
         static constexpr bool value = sizeof(T)  <= sizeof(FunctorData)
           && (alignof(FunctorData) % alignof(T)) == 0
-          && octa::IsMoveConstructible<T>::value;
+          && IsMoveConstructible<T>::value;
     };
 
     struct FunctionManager;
@@ -498,15 +498,15 @@ namespace detail {
     struct FunctorDataManager {
         template<typename R, typename ...Args>
         static R call(const FunctorData &s, Args ...args) {
-            return ((T &)s)(octa::forward<Args>(args)...);
+            return ((T &)s)(forward<Args>(args)...);
         }
 
         static void store_f(FmStorage &s, T v) {
-            new (&get_ref(s)) T(octa::forward<T>(v));
+            new (&get_ref(s)) T(forward<T>(v));
         }
 
         static void move_f(FmStorage &lhs, FmStorage &&rhs) {
-            new (&get_ref(lhs)) T(octa::move(get_ref(rhs)));
+            new (&get_ref(lhs)) T(move(get_ref(rhs)));
         }
 
         static void destroy_f(A &, FmStorage &s) {
@@ -529,20 +529,18 @@ namespace detail {
     > {
         template<typename R, typename ...Args>
         static R call(const FunctorData &s, Args ...args) {
-            return (*(octa::AllocatorPointer<A> &)s)
-                (octa::forward<Args>(args)...);
+            return (*(AllocatorPointer<A> &)s)(forward<Args>(args)...);
         }
 
         static void store_f(FmStorage &s, T v) {
             A &a = s.get_alloc<A>();
             AllocatorPointer<A> *ptr = new (&get_ptr_ref(s))
                 AllocatorPointer<A>(allocator_allocate(a, 1));
-            allocator_construct(a, *ptr, octa::forward<T>(v));
+            allocator_construct(a, *ptr, forward<T>(v));
         }
 
         static void move_f(FmStorage &lhs, FmStorage &&rhs) {
-            new (&get_ptr_ref(lhs)) AllocatorPointer<A>(octa::move(
-                get_ptr_ref(rhs)));
+            new (&get_ptr_ref(lhs)) AllocatorPointer<A>(move(get_ptr_ref(rhs)));
             get_ptr_ref(rhs) = nullptr;
         }
 
@@ -572,7 +570,7 @@ namespace detail {
 
     template<typename T, typename A>
     static void create_fm(FmStorage &s, A &&a) {
-        new (&s.get_alloc<A>()) A(octa::move(a));
+        new (&s.get_alloc<A>()) A(move(a));
         s.manager = &get_default_fm<T, A>();
     }
 
@@ -599,9 +597,9 @@ namespace detail {
         static void call_move_and_destroy(FmStorage &lhs,
         FmStorage &&rhs) {
             using Spec = FunctorDataManager<T, A>;
-            Spec::move_f(lhs, octa::move(rhs));
+            Spec::move_f(lhs, move(rhs));
             Spec::destroy_f(rhs.get_alloc<A>(), rhs);
-            create_fm<T, A>(lhs, octa::move(rhs.get_alloc<A>()));
+            create_fm<T, A>(lhs, move(rhs.get_alloc<A>()));
             rhs.get_alloc<A>().~A();
         }
 
@@ -665,7 +663,7 @@ namespace detail {
 
     template<typename T>
     T func_to_functor(T &&f) {
-        return octa::forward<T>(f);
+        return forward<T>(f);
     }
 
     template<typename RR, typename T, typename ...AA>
@@ -685,24 +683,24 @@ namespace detail {
         struct Nat {};
 
         template<typename U>
-        static decltype(func_to_functor(octa::declval<U>())
-            (octa::declval<A>()...)) test(U *);
+        static decltype(func_to_functor(declval<U>()) (declval<A>()...))
+            test(U *);
         template<typename>
         static Nat test(...);
 
-        static constexpr bool value = octa::IsConvertible<
+        static constexpr bool value = IsConvertible<
             decltype(test<T>(nullptr)), R
         >::value;
     };
 
     template<typename T>
-    using FunctorType = decltype(func_to_functor(octa::declval<T>()));
+    using FunctorType = decltype(func_to_functor(declval<T>()));
 } /* namespace detail */
 
 template<typename R, typename ...Args>
-struct Function<R(Args...)>: octa::detail::FunctionBase<R, Args...> {
-    Function(             ) { init_empty(); }
-    Function(octa::Nullptr) { init_empty(); }
+struct Function<R(Args...)>: detail::FunctionBase<R, Args...> {
+    Function(       ) { init_empty(); }
+    Function(Nullptr) { init_empty(); }
 
     Function(Function &&f) {
         init_empty();
@@ -713,45 +711,45 @@ struct Function<R(Args...)>: octa::detail::FunctionBase<R, Args...> {
         f.p_stor.manager->call_copyf(p_stor, f.p_stor);
     }
 
-    template<typename T, typename = octa::EnableIf<
-        octa::detail::IsValidFunctor<T, R(Args...)>::value
+    template<typename T, typename = EnableIf<
+        detail::IsValidFunctor<T, R(Args...)>::value
     >> Function(T f) {
         if (func_is_null(f)) {
             init_empty();
             return;
         }
-        initialize(octa::detail::func_to_functor(octa::forward<T>(f)),
-            octa::Allocator<octa::detail::FunctorType<T>>());
+        initialize(detail::func_to_functor(forward<T>(f)),
+            Allocator<detail::FunctorType<T>>());
     }
 
     template<typename A>
-    Function(octa::AllocatorArg, const A &) { init_empty(); }
+    Function(AllocatorArg, const A &) { init_empty(); }
 
     template<typename A>
-    Function(octa::AllocatorArg, const A &, octa::Nullptr) { init_empty(); }
+    Function(AllocatorArg, const A &, Nullptr) { init_empty(); }
 
     template<typename A>
-    Function(octa::AllocatorArg, const A &, Function &&f) {
+    Function(AllocatorArg, const A &, Function &&f) {
         init_empty();
         swap(f);
     }
 
     template<typename A>
-    Function(octa::AllocatorArg, const A &a, const Function &f):
+    Function(AllocatorArg, const A &a, const Function &f):
     p_call(f.p_call) {
-        const octa::detail::FunctionManager *mfa
-            = &octa::detail::get_default_fm<octa::AllocatorValue<A>, A>();
+        const detail::FunctionManager *mfa
+            = &detail::get_default_fm<AllocatorValue<A>, A>();
         if (f.p_stor.manager == mfa) {
-            octa::detail::create_fm<octa::AllocatorValue<A>, A>(p_stor, A(a));
+            detail::create_fm<AllocatorValue<A>, A>(p_stor, A(a));
             mfa->call_copyf_fo(p_stor, f.p_stor);
             return;
         }
 
         using AA = AllocatorRebind<A, Function>;
-        const octa::detail::FunctionManager *mff
-            = &octa::detail::get_default_fm<Function, AA>();
+        const detail::FunctionManager *mff
+            = &detail::get_default_fm<Function, AA>();
         if (f.p_stor.manager == mff) {
-            octa::detail::create_fm<Function, AA>(p_stor, AA(a));
+            detail::create_fm<Function, AA>(p_stor, AA(a));
             mff->call_copyf_fo(p_stor, f.P_stor);
             return;
         }
@@ -759,14 +757,14 @@ struct Function<R(Args...)>: octa::detail::FunctionBase<R, Args...> {
         initialize(f, AA(a));
     }
 
-    template<typename A, typename T, typename = octa::EnableIf<
-        octa::detail::IsValidFunctor<T, R(Args...)>::value
-    >> Function(octa::AllocatorArg, const A &a, T f) {
+    template<typename A, typename T, typename = EnableIf<
+        detail::IsValidFunctor<T, R(Args...)>::value
+    >> Function(AllocatorArg, const A &a, T f) {
         if (func_is_null(f)) {
             init_empty();
             return;
         }
-        initialize(octa::detail::func_to_functor(octa::forward<T>(f)), A(a));
+        initialize(detail::func_to_functor(forward<T>(f)), A(a));
     }
 
     ~Function() {
@@ -786,45 +784,41 @@ struct Function<R(Args...)>: octa::detail::FunctionBase<R, Args...> {
     };
 
     R operator()(Args ...args) const {
-        return p_call(p_stor.data, octa::forward<Args>(args)...);
+        return p_call(p_stor.data, forward<Args>(args)...);
     }
 
     template<typename F, typename A>
     void assign(F &&f, const A &a) {
-        Function(octa::allocator_arg, a, octa::forward<F>(f)).swap(*this);
+        Function(allocator_arg, a, forward<F>(f)).swap(*this);
     }
 
     void swap(Function &f) {
-        octa::detail::FmStorage tmp;
-        f.p_stor.manager->call_move_and_destroyf(tmp,
-            octa::move(f.p_stor));
-        p_stor.manager->call_move_and_destroyf(f.p_stor,
-            octa::move(p_stor));
-        tmp.manager->call_move_and_destroyf(p_stor,
-            octa::move(tmp));
+        detail::FmStorage tmp;
+        f.p_stor.manager->call_move_and_destroyf(tmp, move(f.p_stor));
+        p_stor.manager->call_move_and_destroyf(f.p_stor, move(p_stor));
+        tmp.manager->call_move_and_destroyf(p_stor, move(tmp));
         octa::swap(p_call, f.p_call);
     }
 
     operator bool() const { return p_call != nullptr; }
 
 private:
-    octa::detail::FmStorage p_stor;
-    R (*p_call)(const octa::detail::FunctorData &, Args...);
+    detail::FmStorage p_stor;
+    R (*p_call)(const detail::FunctorData &, Args...);
 
     template<typename T, typename A>
     void initialize(T &&f, A &&a) {
-        p_call = &octa::detail::FunctorDataManager<T, A>::template call<R, Args...>;
-        octa::detail::create_fm<T, A>(p_stor, octa::forward<A>(a));
-        octa::detail::FunctorDataManager<T, A>::store_f(p_stor,
-            octa::forward<T>(f));
+        p_call = &detail::FunctorDataManager<T, A>::template call<R, Args...>;
+        detail::create_fm<T, A>(p_stor, forward<A>(a));
+        detail::FunctorDataManager<T, A>::store_f(p_stor, forward<T>(f));
     }
 
     void init_empty() {
         using emptyf = R(*)(Args...);
-        using emptya = octa::Allocator<emptyf>;
+        using emptya = Allocator<emptyf>;
         p_call = nullptr;
-        octa::detail::create_fm<emptyf, emptya>(p_stor, emptya());
-        octa::detail::FunctorDataManager<emptyf, emptya>::store_f(p_stor,
+        detail::create_fm<emptyf, emptya>(p_stor, emptya());
+        detail::FunctorDataManager<emptyf, emptya>::store_f(p_stor,
             nullptr);
     }
 
@@ -847,16 +841,16 @@ private:
 };
 
 template<typename T>
-bool operator==(octa::Nullptr, const Function<T> &rhs) { return !rhs; }
+bool operator==(Nullptr, const Function<T> &rhs) { return !rhs; }
 
 template<typename T>
-bool operator==(const Function<T> &lhs, octa::Nullptr) { return !lhs; }
+bool operator==(const Function<T> &lhs, Nullptr) { return !lhs; }
 
 template<typename T>
-bool operator!=(octa::Nullptr, const Function<T> &rhs) { return rhs; }
+bool operator!=(Nullptr, const Function<T> &rhs) { return rhs; }
 
 template<typename T>
-bool operator!=(const Function<T> &lhs, octa::Nullptr) { return lhs; }
+bool operator!=(const Function<T> &lhs, Nullptr) { return lhs; }
 
 namespace detail {
     template<typename F>
@@ -865,7 +859,7 @@ namespace detail {
     template<typename C, typename R, typename ...A>
     struct DcLambdaTypes<R (C::*)(A...) const> {
         using Ptr = R (*)(A...);
-        using Obj = octa::Function<R(A...)>;
+        using Obj = Function<R(A...)>;
     };
 
     template<typename F>
@@ -874,7 +868,7 @@ namespace detail {
         static char test(typename DcLambdaTypes<FF>::Ptr);
         template<typename FF>
         static int test(...);
-        static constexpr bool value = (sizeof(test<F>(octa::declval<F>())) == 1);
+        static constexpr bool value = (sizeof(test<F>(declval<F>())) == 1);
     };
 
     template<typename F, bool = DcFuncTest<F>::value>
@@ -887,8 +881,8 @@ namespace detail {
         using Type = typename DcLambdaTypes<F>::Ptr;
     };
 
-    template<typename F, bool = octa::IsDefaultConstructible<F>::value &&
-                                octa::IsMoveConstructible<F>::value
+    template<typename F, bool = IsDefaultConstructible<F>::value &&
+                                IsMoveConstructible<F>::value
     > struct DcFuncTypeObj {
         using Type = typename DcFuncTypeObjBase<F>::Type;
     };
@@ -898,7 +892,7 @@ namespace detail {
         using Type = F;
     };
 
-    template<typename F, bool = octa::IsClass<F>::value>
+    template<typename F, bool = IsClass<F>::value>
     struct DcFuncType {
         using Type = F;
     };
@@ -910,7 +904,7 @@ namespace detail {
 }
 
 template<typename F> using FunctionMakeDefaultConstructible
-    = typename octa::detail::DcFuncType<F>::Type;
+    = typename detail::DcFuncType<F>::Type;
 
 } /* namespace octa */
 

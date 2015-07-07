@@ -68,7 +68,7 @@ namespace detail {
 
     template<typename T, bool = HasDifference<T>::value>
     struct PointerDifferenceBase {
-        using Type = octa::Ptrdiff;
+        using Type = Ptrdiff;
     };
 
     template<typename T> struct PointerDifferenceBase<T, true> {
@@ -82,7 +82,7 @@ namespace detail {
 
     template<typename T>
     struct PointerDifferenceType<T *> {
-        using Type = octa::Ptrdiff;
+        using Type = Ptrdiff;
     };
 
     template<typename T, typename U>
@@ -135,16 +135,16 @@ namespace detail {
 } /*namespace detail */
 
 template<typename T>
-using Pointer = typename octa::detail::PointerPointer<T>::Type;
+using Pointer = typename detail::PointerPointer<T>::Type;
 
 template<typename T>
-using PointerElement = typename octa::detail::PointerElementType<T>::Type;
+using PointerElement = typename detail::PointerElementType<T>::Type;
 
 template<typename T>
-using PointerDifference = typename octa::detail::PointerDifferenceType<T>::Type;
+using PointerDifference = typename detail::PointerDifferenceType<T>::Type;
 
 template<typename T, typename U>
-using PointerRebind = typename octa::detail::PointerRebindType<T, U>::Type;
+using PointerRebind = typename detail::PointerRebindType<T, U>::Type;
 
 /* pointer to */
 
@@ -153,8 +153,7 @@ namespace detail {
 
     template<typename T>
     struct PointerTo {
-        static T pointer_to(octa::Conditional<
-            octa::IsVoid<PointerElement<T>>::value,
+        static T pointer_to(Conditional<IsVoid<PointerElement<T>>::value,
             PointerToNat, PointerElement<T>
         > &r) {
             return T::pointer_to(r);
@@ -163,20 +162,19 @@ namespace detail {
 
     template<typename T>
     struct PointerTo<T *> {
-        static T pointer_to(octa::Conditional<
-            octa::IsVoid<T>::value, PointerToNat, T
+        static T pointer_to(Conditional<IsVoid<T>::value,
+            PointerToNat, T
         > &r) {
-            return octa::address_of(r);
+            return address_of(r);
         }
     };
 }
 
 template<typename T>
-static T pointer_to(octa::Conditional<
-    octa::IsVoid<PointerElement<T>>::value,
-    octa::detail::PointerToNat, PointerElement<T>
+static T pointer_to(Conditional<IsVoid<PointerElement<T>>::value,
+    detail::PointerToNat, PointerElement<T>
 > &r) {
-    return octa::detail::PointerTo<T>::pointer_to(r);
+    return detail::PointerTo<T>::pointer_to(r);
 }
 
 /* default deleter */
@@ -212,7 +210,7 @@ namespace detail {
     template<typename T>
     static char ptr_test(typename T::Pointer * = 0);
 
-    template<typename T> struct HasPtr: octa::IntegralConstant<bool,
+    template<typename T> struct HasPtr: IntegralConstant<bool,
         (sizeof(ptr_test<T>(0)) == 1)
     > {};
 
@@ -226,7 +224,7 @@ namespace detail {
     };
 
     template<typename T, typename D> struct PointerType {
-        using Type = typename PointerBase<T, octa::RemoveReference<D>>::Type;
+        using Type = typename PointerBase<T, RemoveReference<D>>::Type;
     };
 } /* namespace detail */
 
@@ -234,7 +232,7 @@ template<typename T, typename D = DefaultDelete<T>>
 struct Box {
     using Element = T;
     using Deleter = D;
-    using Pointer = typename octa::detail::PointerType<T, D>::Type;
+    using Pointer = typename detail::PointerType<T, D>::Type;
 
 private:
     struct Nat { int x; };
@@ -244,63 +242,63 @@ private:
 
 public:
     constexpr Box(): p_stor(nullptr, D()) {
-        static_assert(!octa::IsPointer<D>::value,
+        static_assert(!IsPointer<D>::value,
             "Box constructed with null fptr deleter");
     }
-    constexpr Box(octa::Nullptr): p_stor(nullptr, D()) {
-        static_assert(!octa::IsPointer<D>::value,
+    constexpr Box(Nullptr): p_stor(nullptr, D()) {
+        static_assert(!IsPointer<D>::value,
             "Box constructed with null fptr deleter");
     }
 
     explicit Box(Pointer p): p_stor(p, D()) {
-        static_assert(!octa::IsPointer<D>::value,
+        static_assert(!IsPointer<D>::value,
             "Box constructed with null fptr deleter");
     }
 
-    Box(Pointer p, octa::Conditional<octa::IsReference<D>::value,
-        D, octa::AddLvalueReference<const D>
+    Box(Pointer p, Conditional<IsReference<D>::value,
+        D, AddLvalueReference<const D>
     > d): p_stor(p, d) {}
 
-    Box(Pointer p, octa::RemoveReference<D> &&d):
-    p_stor(p, octa::move(d)) {
-        static_assert(!octa::IsReference<D>::value,
+    Box(Pointer p, RemoveReference<D> &&d):
+    p_stor(p, move(d)) {
+        static_assert(!IsReference<D>::value,
             "rvalue deleter cannot be a ref");
     }
 
-    Box(Box &&u): p_stor(u.release(), octa::forward<D>(u.get_deleter())) {}
+    Box(Box &&u): p_stor(u.release(), forward<D>(u.get_deleter())) {}
 
     template<typename TT, typename DD>
-    Box(Box<TT, DD> &&u, octa::EnableIf<!octa::IsArray<TT>::value
-        && octa::IsConvertible<typename Box<TT, DD>::Pointer, Pointer>::value
-        && octa::IsConvertible<DD, D>::value
-        && (!octa::IsReference<D>::value || octa::IsSame<D, DD>::value)
-    > = Nat()): p_stor(u.release(), octa::forward<DD>(u.get_deleter())) {}
+    Box(Box<TT, DD> &&u, EnableIf<!IsArray<TT>::value
+        && IsConvertible<typename Box<TT, DD>::Pointer, Pointer>::value
+        && IsConvertible<DD, D>::value
+        && (!IsReference<D>::value || IsSame<D, DD>::value)
+    > = Nat()): p_stor(u.release(), forward<DD>(u.get_deleter())) {}
 
     Box &operator=(Box &&u) {
         reset(u.release());
-        p_stor.second() = octa::forward<D>(u.get_deleter());
+        p_stor.second() = forward<D>(u.get_deleter());
         return *this;
     }
 
     template<typename TT, typename DD>
-    EnableIf<!octa::IsArray<TT>::value
-        && octa::IsConvertible<typename Box<TT, DD>::Pointer, Pointer>::value
-        && octa::IsAssignable<D &, DD &&>::value,
+    EnableIf<!IsArray<TT>::value
+        && IsConvertible<typename Box<TT, DD>::Pointer, Pointer>::value
+        && IsAssignable<D &, DD &&>::value,
         Box &
     > operator=(Box<TT, DD> &&u) {
         reset(u.release());
-        p_stor.second() = octa::forward<DD>(u.get_deleter());
+        p_stor.second() = forward<DD>(u.get_deleter());
         return *this;
     }
 
-    Box &operator=(octa::Nullptr) {
+    Box &operator=(Nullptr) {
         reset();
         return *this;
     }
 
     ~Box() { reset(); }
 
-    octa::AddLvalueReference<T> operator*() const { return *p_stor.first(); }
+    AddLvalueReference<T> operator*() const { return *p_stor.first(); }
     Pointer operator->() const { return p_stor.first(); }
 
     explicit operator bool() const {
@@ -329,31 +327,31 @@ public:
     }
 
 private:
-    octa::detail::CompressedPair<T *, D> p_stor;
+    detail::CompressedPair<T *, D> p_stor;
 };
 
 namespace detail {
-    template<typename T, typename U, bool = octa::IsSame<
-        octa::RemoveCv<PointerElement<T>>,
-        octa::RemoveCv<PointerElement<U>>
-    >::value> struct SameOrLessCvQualifiedBase: octa::IsConvertible<T, U> {};
+    template<typename T, typename U, bool = IsSame<
+        RemoveCv<PointerElement<T>>,
+        RemoveCv<PointerElement<U>>
+    >::value> struct SameOrLessCvQualifiedBase: IsConvertible<T, U> {};
 
     template<typename T, typename U>
-    struct SameOrLessCvQualifiedBase<T, U, false>: octa::False {};
+    struct SameOrLessCvQualifiedBase<T, U, false>: False {};
 
-    template<typename T, typename U, bool = octa::IsPointer<T>::value
-        || octa::IsSame<T, U>::value || octa::detail::HasElement<T>::value
+    template<typename T, typename U, bool = IsPointer<T>::value
+        || IsSame<T, U>::value || detail::HasElement<T>::value
     > struct SameOrLessCvQualified: SameOrLessCvQualifiedBase<T, U> {};
 
     template<typename T, typename U>
-    struct SameOrLessCvQualified<T, U, false>: octa::False {};
+    struct SameOrLessCvQualified<T, U, false>: False {};
 } /* namespace detail */
 
 template<typename T, typename D>
 struct Box<T[], D> {
     using Element = T;
     using Deleter = D;
-    using Pointer = typename octa::detail::PointerType<T, D>::Type;
+    using Pointer = typename detail::PointerType<T, D>::Type;
 
 private:
     struct Nat { int x; };
@@ -363,82 +361,82 @@ private:
 
 public:
     constexpr Box(): p_stor(nullptr, D()) {
-        static_assert(!octa::IsPointer<D>::value,
+        static_assert(!IsPointer<D>::value,
             "Box constructed with null fptr deleter");
     }
-    constexpr Box(octa::Nullptr): p_stor(nullptr, D()) {
-        static_assert(!octa::IsPointer<D>::value,
+    constexpr Box(Nullptr): p_stor(nullptr, D()) {
+        static_assert(!IsPointer<D>::value,
             "Box constructed with null fptr deleter");
     }
 
-    template<typename U> explicit Box(U p, octa::EnableIf<
-        octa::detail::SameOrLessCvQualified<U, Pointer>::value, Nat
+    template<typename U> explicit Box(U p, EnableIf<
+        detail::SameOrLessCvQualified<U, Pointer>::value, Nat
     > = Nat()): p_stor(p, D()) {
-        static_assert(!octa::IsPointer<D>::value,
+        static_assert(!IsPointer<D>::value,
             "Box constructed with null fptr deleter");
     }
 
-    template<typename U> Box(U p, octa::Conditional<
-        octa::IsReference<D>::value,
+    template<typename U> Box(U p, Conditional<
+        IsReference<D>::value,
         D, AddLvalueReference<const D>
-    > d, octa::EnableIf<octa::detail::SameOrLessCvQualified<U, Pointer>::value,
+    > d, EnableIf<detail::SameOrLessCvQualified<U, Pointer>::value,
     Nat> = Nat()): p_stor(p, d) {}
 
-    Box(octa::Nullptr, octa::Conditional<octa::IsReference<D>::value,
+    Box(Nullptr, Conditional<IsReference<D>::value,
         D, AddLvalueReference<const D>
     > d): p_stor(nullptr, d) {}
 
-    template<typename U> Box(U p, octa::RemoveReference<D> &&d,
-    octa::EnableIf<
-        octa::detail::SameOrLessCvQualified<U, Pointer>::value, Nat
-    > = Nat()): p_stor(p, octa::move(d)) {
-        static_assert(!octa::IsReference<D>::value,
+    template<typename U> Box(U p, RemoveReference<D> &&d,
+    EnableIf<
+        detail::SameOrLessCvQualified<U, Pointer>::value, Nat
+    > = Nat()): p_stor(p, move(d)) {
+        static_assert(!IsReference<D>::value,
             "rvalue deleter cannot be a ref");
     }
 
-    Box(octa::Nullptr, octa::RemoveReference<D> &&d):
-    p_stor(nullptr, octa::move(d)) {
-        static_assert(!octa::IsReference<D>::value,
+    Box(Nullptr, RemoveReference<D> &&d):
+    p_stor(nullptr, move(d)) {
+        static_assert(!IsReference<D>::value,
             "rvalue deleter cannot be a ref");
     }
 
-    Box(Box &&u): p_stor(u.release(), octa::forward<D>(u.get_deleter())) {}
+    Box(Box &&u): p_stor(u.release(), forward<D>(u.get_deleter())) {}
 
     template<typename TT, typename DD>
     Box(Box<TT, DD> &&u, EnableIf<IsArray<TT>::value
-        && octa::detail::SameOrLessCvQualified<typename Box<TT, DD>::Pointer,
-                                               Pointer>::value
-        && octa::IsConvertible<DD, D>::value
-        && (!octa::IsReference<D>::value ||
-             octa::IsSame<D, DD>::value)> = Nat()
-    ): p_stor(u.release(), octa::forward<DD>(u.get_deleter())) {}
+        && detail::SameOrLessCvQualified<typename Box<TT, DD>::Pointer,
+                                         Pointer>::value
+        && IsConvertible<DD, D>::value
+        && (!IsReference<D>::value ||
+             IsSame<D, DD>::value)> = Nat()
+    ): p_stor(u.release(), forward<DD>(u.get_deleter())) {}
 
     Box &operator=(Box &&u) {
         reset(u.release());
-        p_stor.second() = octa::forward<D>(u.get_deleter());
+        p_stor.second() = forward<D>(u.get_deleter());
         return *this;
     }
 
     template<typename TT, typename DD>
-    EnableIf<octa::IsArray<TT>::value
-        && octa::detail::SameOrLessCvQualified<typename Box<TT, DD>::Pointer,
-                                               Pointer>::value
+    EnableIf<IsArray<TT>::value
+        && detail::SameOrLessCvQualified<typename Box<TT, DD>::Pointer,
+                                         Pointer>::value
         && IsAssignable<D &, DD &&>::value,
         Box &
     > operator=(Box<TT, DD> &&u) {
         reset(u.release());
-        p_stor.second() = octa::forward<DD>(u.get_deleter());
+        p_stor.second() = forward<DD>(u.get_deleter());
         return *this;
     }
 
-    Box &operator=(octa::Nullptr) {
+    Box &operator=(Nullptr) {
         reset();
         return *this;
     }
 
     ~Box() { reset(); }
 
-    octa::AddLvalueReference<T> operator[](octa::Size idx) const {
+    AddLvalueReference<T> operator[](Size idx) const {
         return p_stor.first()[idx];
     }
 
@@ -458,14 +456,14 @@ public:
     }
 
     template<typename U> EnableIf<
-        octa::detail::SameOrLessCvQualified<U, Pointer>::value, void
+        detail::SameOrLessCvQualified<U, Pointer>::value, void
     > reset(U p) {
         Pointer tmp = p_stor.first();
         p_stor.first() = p;
         if (tmp) p_stor.second()(tmp);
     }
 
-    void reset(octa::Nullptr) {
+    void reset(Nullptr) {
         Pointer tmp = p_stor.first();
         p_stor.first() = nullptr;
         if (tmp) p_stor.second()(tmp);
@@ -480,35 +478,35 @@ public:
     }
 
 private:
-    octa::detail::CompressedPair<T *, D> p_stor;
+    detail::CompressedPair<T *, D> p_stor;
 };
 
 namespace detail {
     template<typename T> struct BoxIf {
-        using Box = octa::Box<T>;
+        using Box = Box<T>;
     };
 
     template<typename T> struct BoxIf<T[]> {
-        using BoxUnknownSize = octa::Box<T[]>;
+        using BoxUnknownSize = Box<T[]>;
     };
 
-    template<typename T, octa::Size N> struct BoxIf<T[N]> {
+    template<typename T, Size N> struct BoxIf<T[N]> {
         using BoxKnownSize = void;
     };
 }
 
 template<typename T, typename ...A>
-typename octa::detail::BoxIf<T>::Box make_box(A &&...args) {
-    return Box<T>(new T(octa::forward<A>(args)...));
+typename detail::BoxIf<T>::Box make_box(A &&...args) {
+    return Box<T>(new T(forward<A>(args)...));
 }
 
 template<typename T>
-typename octa::detail::BoxIf<T>::BoxUnknownSize make_box(octa::Size n) {
-    return Box<T>(new octa::RemoveExtent<T>[n]());
+typename detail::BoxIf<T>::BoxUnknownSize make_box(Size n) {
+    return Box<T>(new RemoveExtent<T>[n]());
 }
 
 template<typename T, typename ...A>
-typename octa::detail::BoxIf<T>::BoxKnownSize make_box(A &&...args) = delete;
+typename detail::BoxIf<T>::BoxKnownSize make_box(A &&...args) = delete;
 
 /* allocator */
 
@@ -531,8 +529,8 @@ template<> struct Allocator<const void> {
 };
 
 template<typename T> struct Allocator {
-    using Size = octa::Size;
-    using Difference = octa::Ptrdiff;
+    using Size = Size;
+    using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
     using ConstReference = const T &;
@@ -554,22 +552,22 @@ template<typename T> struct Allocator {
     Size max_size() const { return Size(~0) / sizeof(T); }
 
     Pointer allocate(Size n, Allocator<void>::ConstPointer = nullptr) {
-        return (Pointer) ::new octa::byte[n * sizeof(T)];
+        return (Pointer) ::new byte[n * sizeof(T)];
     }
 
-    void deallocate(Pointer p, Size) { ::delete[] (octa::byte *) p; }
+    void deallocate(Pointer p, Size) { ::delete[] (byte *) p; }
 
     template<typename U, typename ...A>
     void construct(U *p, A &&...args) {
-        ::new((void *)p) U(octa::forward<A>(args)...);
+        ::new((void *)p) U(forward<A>(args)...);
     }
 
     void destroy(Pointer p) { p->~T(); }
 };
 
 template<typename T> struct Allocator<const T> {
-    using Size = octa::Size;
-    using Difference = octa::Ptrdiff;
+    using Size = Size;
+    using Difference = Ptrdiff;
     using Value = const T;
     using Reference = const T &;
     using ConstReference = const T &;
@@ -588,14 +586,14 @@ template<typename T> struct Allocator<const T> {
     Size max_size() const { return Size(~0) / sizeof(T); }
 
     Pointer allocate(Size n, Allocator<void>::ConstPointer = nullptr) {
-        return (Pointer) ::new octa::byte[n * sizeof(T)];
+        return (Pointer) ::new byte[n * sizeof(T)];
     }
 
-    void deallocate(Pointer p, Size) { ::delete[] (octa::byte *) p; }
+    void deallocate(Pointer p, Size) { ::delete[] (byte *) p; }
 
     template<typename U, typename ...A>
     void construct(U *p, A &&...args) {
-        ::new((void *)p) U(octa::forward<A>(args)...);
+        ::new((void *)p) U(forward<A>(args)...);
     }
 
     void destroy(Pointer p) { p->~T(); }
@@ -678,7 +676,7 @@ namespace detail {
 
     template<typename A, typename D, bool = SizeTest<A>::value>
     struct SizeBase {
-        using Type = octa::MakeUnsigned<D>;
+        using Type = MakeUnsigned<D>;
     };
 
     template<typename A, typename D>
@@ -696,22 +694,22 @@ template<typename A>
 using AllocatorValue = typename AllocatorType<A>::Value;
 
 template<typename A>
-using AllocatorPointer = typename octa::detail::PointerType<
+using AllocatorPointer = typename detail::PointerType<
     AllocatorValue<A>, AllocatorType<A>
 >::Type;
 
 template<typename A>
-using AllocatorConstPointer = typename octa::detail::ConstPointer<
+using AllocatorConstPointer = typename detail::ConstPointer<
     AllocatorValue<A>, AllocatorPointer<A>, AllocatorType<A>
 >::Type;
 
 template<typename A>
-using AllocatorVoidPointer = typename octa::detail::VoidPointer<
+using AllocatorVoidPointer = typename detail::VoidPointer<
     AllocatorPointer<A>, AllocatorType<A>
 >::Type;
 
 template<typename A>
-using AllocatorConstVoidPointer = typename octa::detail::ConstVoidPointer<
+using AllocatorConstVoidPointer = typename detail::ConstVoidPointer<
     AllocatorPointer<A>, AllocatorType<A>
 >::Type;
 
@@ -737,21 +735,21 @@ namespace detail {
 }
 
 template<typename A>
-using AllocatorDifference = typename octa::detail::AllocDifference<
+using AllocatorDifference = typename detail::AllocDifference<
     A, AllocatorPointer<A>
 >::Type;
 
 /* allocator size */
 
 template<typename A>
-using AllocatorSize = typename octa::detail::SizeBase<
+using AllocatorSize = typename detail::SizeBase<
     A, AllocatorDifference<A>
 >::Type;
 
 /* allocator rebind */
 
 namespace detail {
-    template<typename T, typename U, bool = octa::detail::HasRebind<T, U>::value>
+    template<typename T, typename U, bool = detail::HasRebind<T, U>::value>
     struct AllocTraitsRebindType {
         using Type = typename T::template Rebind<U>;
     };
@@ -772,7 +770,7 @@ namespace detail {
 } /* namespace detail */
 
 template<typename A, typename T>
-using AllocatorRebind = typename octa::detail::AllocTraitsRebindType<
+using AllocatorRebind = typename detail::AllocTraitsRebindType<
     AllocatorType<A>, T
 >::Type;
 
@@ -790,7 +788,7 @@ namespace detail {
     template<typename A, bool = PropagateOnContainerCopyAssignmentTest<
         A
     >::value> struct PropagateOnContainerCopyAssignmentBase {
-        using Type = octa::False;
+        using Type = False;
     };
 
     template<typename A>
@@ -801,7 +799,7 @@ namespace detail {
 
 template<typename A>
 using AllocatorPropagateOnContainerCopyAssignment
-    = typename octa::detail::PropagateOnContainerCopyAssignmentBase<A>::Type;
+    = typename detail::PropagateOnContainerCopyAssignmentBase<A>::Type;
 
 /* allocator propagate on container move assignment */
 
@@ -817,7 +815,7 @@ namespace detail {
     template<typename A, bool = PropagateOnContainerMoveAssignmentTest<
         A
     >::value> struct PropagateOnContainerMoveAssignmentBase {
-        using Type = octa::False;
+        using Type = False;
     };
 
     template<typename A>
@@ -828,7 +826,7 @@ namespace detail {
 
 template<typename A>
 using AllocatorPropagateOnContainerMoveAssignment
-    = typename octa::detail::PropagateOnContainerMoveAssignmentBase<A>::Type;
+    = typename detail::PropagateOnContainerMoveAssignmentBase<A>::Type;
 
 /* allocator propagate on container swap */
 
@@ -843,7 +841,7 @@ namespace detail {
 
     template<typename A, bool = PropagateOnContainerSwapTest<A>::value>
     struct PropagateOnContainerSwapBase {
-        using Type = octa::False;
+        using Type = False;
     };
 
     template<typename A>
@@ -854,7 +852,7 @@ namespace detail {
 
 template<typename A>
 using AllocatorPropagateOnContainerSwap
-    = typename octa::detail::PropagateOnContainerSwapBase<A>::Type;
+    = typename detail::PropagateOnContainerSwapBase<A>::Type;
 
 /* allocator is always equal */
 
@@ -868,7 +866,7 @@ namespace detail {
 
     template<typename A, bool = IsAlwaysEqualTest<A>::value>
     struct IsAlwaysEqualBase {
-        using Type = typename octa::IsEmpty<A>::Type;
+        using Type = typename IsEmpty<A>::Type;
     };
 
     template<typename A>
@@ -878,7 +876,7 @@ namespace detail {
 } /* namespace detail */
 
 template<typename A>
-using AllocatorIsAlwaysEqual = typename octa::detail::IsAlwaysEqualBase<A>::Type;
+using AllocatorIsAlwaysEqual = typename detail::IsAlwaysEqualBase<A>::Type;
 
 /* allocator allocate */
 
@@ -891,33 +889,31 @@ allocator_allocate(A &a, AllocatorSize<A> n) {
 namespace detail {
     template<typename A, typename S, typename CVP>
     auto allocate_hint_test(A &&a, S &&sz, CVP &&p)
-        -> decltype(a.allocate(sz, p), octa::True());
+        -> decltype(a.allocate(sz, p), True());
 
     template<typename A, typename S, typename CVP>
     auto allocate_hint_test(const A &, S &&, CVP &&)
-        -> octa::False;
+        -> False;
 
     template<typename A, typename S, typename CVP>
-    struct AllocateHintTest: octa::IntegralConstant<bool,
-        octa::IsSame<
-            decltype(allocate_hint_test(octa::declval<A>(),
-                                        octa::declval<S>(),
-                                        octa::declval<CVP>())),
-            octa::True
+    struct AllocateHintTest: IntegralConstant<bool,
+        IsSame<decltype(allocate_hint_test(declval<A>(),
+                                           declval<S>(),
+                                           declval<CVP>())), True
         >::value
     > {};
 
     template<typename A>
     inline AllocatorPointer<A> allocate(A &a, AllocatorSize<A> n,
                                          AllocatorConstVoidPointer<A> h,
-                                         octa::True) {
+                                         True) {
         return a.allocate(n, h);
     }
 
     template<typename A>
     inline AllocatorPointer<A> allocate(A &a, AllocatorSize<A> n,
                                          AllocatorConstVoidPointer<A>,
-                                         octa::False) {
+                                         False) {
         return a.allocate(n);
     }
 } /* namespace detail */
@@ -926,8 +922,8 @@ template<typename A>
 inline AllocatorPointer<A>
 allocator_allocate(A &a, AllocatorSize<A> n,
                    AllocatorConstVoidPointer<A> h) {
-    return octa::detail::allocate(a, n, h,
-        octa::detail::AllocateHintTest<
+    return detail::allocate(a, n, h,
+        detail::AllocateHintTest<
             A, AllocatorSize<A>, AllocatorConstVoidPointer<A>
         >());
 }
@@ -945,139 +941,129 @@ inline void allocator_deallocate(A &a, AllocatorPointer<A> p,
 namespace detail {
     template<typename A, typename T, typename ...Args>
     auto construct_test(A &&a, T *p, Args &&...args)
-        -> decltype(a.construct(p, octa::forward<Args>(args)...),
-            octa::True());
+        -> decltype(a.construct(p, forward<Args>(args)...),
+            True());
 
     template<typename A, typename T, typename ...Args>
     auto construct_test(const A &, T *, Args &&...)
-        -> octa::False;
+        -> False;
 
     template<typename A, typename T, typename ...Args>
-    struct ConstructTest: octa::IntegralConstant<bool,
-        octa::IsSame<
-            decltype(construct_test(octa::declval<A>(),
-                                    octa::declval<T>(),
-                                    octa::declval<Args>()...)),
-            octa::True
+    struct ConstructTest: IntegralConstant<bool,
+        IsSame< decltype(construct_test(declval<A>(),
+                                       declval<T>(),
+                                       declval<Args>()...)), True
         >::value
     > {};
 
     template<typename A, typename T, typename ...Args>
-    inline void construct(octa::True, A &a, T *p, Args &&...args) {
-        a.construct(p, octa::forward<Args>(args)...);
+    inline void construct(True, A &a, T *p, Args &&...args) {
+        a.construct(p, forward<Args>(args)...);
     }
 
     template<typename A, typename T, typename ...Args>
-    inline void construct(octa::False, A &, T *p, Args &&...args) {
-        ::new ((void *)p) T(octa::forward<Args>(args)...);
+    inline void construct(False, A &, T *p, Args &&...args) {
+        ::new ((void *)p) T(forward<Args>(args)...);
     }
 } /* namespace detail */
 
 template<typename A, typename T, typename ...Args>
 inline void allocator_construct(A &a, T *p, Args &&...args) {
-    octa::detail::construct(octa::detail::ConstructTest<
-        A, T *, Args...
-    >(), a, p, octa::forward<Args>(args)...);
+    detail::construct(detail::ConstructTest<A, T *, Args...>(), a, p,
+        forward<Args>(args)...);
 }
 
 /* allocator destroy */
 
 namespace detail {
     template<typename A, typename P>
-    auto destroy_test(A &&a, P &&p) -> decltype(a.destroy(p), octa::True());
+    auto destroy_test(A &&a, P &&p) -> decltype(a.destroy(p), True());
 
     template<typename A, typename P>
-    auto destroy_test(const A &, P &&) -> octa::False;
+    auto destroy_test(const A &, P &&) -> False;
 
     template<typename A, typename P>
-    struct DestroyTest: octa::IntegralConstant<bool,
-        octa::IsSame<
-            decltype(destroy_test(octa::declval<A>(), octa::declval<P>())),
-            octa::True
+    struct DestroyTest: IntegralConstant<bool,
+        IsSame<decltype(destroy_test(declval<A>(), declval<P>())), True
         >::value
     > {};
 
     template<typename A, typename T>
-    inline void destroy(octa::True, A &a, T *p) {
+    inline void destroy(True, A &a, T *p) {
         a.destroy(p);
     }
 
     template<typename A, typename T>
-    inline void destroy(octa::False, A &, T *p) {
+    inline void destroy(False, A &, T *p) {
         p->~T();
     }
 } /* namespace detail */
 
 template<typename A, typename T>
 inline void allocator_destroy(A &a, T *p) {
-    octa::detail::destroy(octa::detail::DestroyTest<A, T *>(), a, p);
+    detail::destroy(detail::DestroyTest<A, T *>(), a, p);
 }
 
 /* allocator max size */
 
 namespace detail {
     template<typename A>
-    auto alloc_max_size_test(A &&a) -> decltype(a.max_size(), octa::True());
+    auto alloc_max_size_test(A &&a) -> decltype(a.max_size(), True());
 
     template<typename A>
-    auto alloc_max_size_test(const A &) -> octa::False;
+    auto alloc_max_size_test(const A &) -> False;
 
     template<typename A>
-    struct AllocMaxSizeTest: octa::IntegralConstant<bool,
-        octa::IsSame<
-            decltype(alloc_max_size_test(octa::declval<A &>())),
-            octa::True
+    struct AllocMaxSizeTest: IntegralConstant<bool,
+        IsSame<decltype(alloc_max_size_test(declval<A &>())), True
         >::value
     > {};
 
     template<typename A>
-    inline AllocatorSize<A> alloc_max_size(octa::True, const A &a) {
+    inline AllocatorSize<A> alloc_max_size(True, const A &a) {
         return a.max_size();
     }
 
     template<typename A>
-    inline AllocatorSize<A> alloc_max_size(octa::False, const A &) {
+    inline AllocatorSize<A> alloc_max_size(False, const A &) {
         return AllocatorSize<A>(~0);
     }
 } /* namespace detail */
 
 template<typename A>
 inline AllocatorSize<A> allocator_max_size(const A &a) {
-    return octa::detail::alloc_max_size(octa::detail::AllocMaxSizeTest<
-        const A
-    >(), a);
+    return detail::alloc_max_size(detail::AllocMaxSizeTest<const A>(), a);
 }
 
 /* allocator container copy */
 
 namespace detail {
     template<typename A>
-    auto alloc_copy_test(A &&a) -> decltype(a.container_copy(), octa::True());
+    auto alloc_copy_test(A &&a) -> decltype(a.container_copy(), True());
 
     template<typename A>
-    auto alloc_copy_test(const A &) -> octa::False;
+    auto alloc_copy_test(const A &) -> False;
 
     template<typename A>
-    struct AllocCopyTest: octa::IntegralConstant<bool,
-        octa::IsSame<
-            decltype(alloc_copy_test(octa::declval<A &>())), octa::True
+    struct AllocCopyTest: IntegralConstant<bool,
+        IsSame<decltype(alloc_copy_test(declval<A &>())), True
         >::value
     > {};
 
     template<typename A>
-    inline AllocatorType<A> alloc_container_copy(octa::True, const A &a) {
+    inline AllocatorType<A> alloc_container_copy(True, const A &a) {
         return a.container_copy();
     }
 
     template<typename A>
-    inline AllocatorType<A> alloc_container_copy(octa::False, const A &a) {
+    inline AllocatorType<A> alloc_container_copy(False, const A &a) {
         return a;
     }
 } /* namespace detail */
 
 template<typename A>
 inline AllocatorType<A> allocator_container_copy(const A &a) {
-    return octa::detail::alloc_container_copy(octa::detail::AllocCopyTest<
+    return detail::alloc_container_copy(detail::AllocCopyTest<
         const A
     >(), a);
 }
