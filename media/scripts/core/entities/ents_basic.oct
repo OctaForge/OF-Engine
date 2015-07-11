@@ -1654,7 +1654,8 @@ M.Mapmodel = StaticEntity.clone({
             setter: capi.set_animation_ext, client_set: true
         }),
         start_time : svars::StateInteger({
-            getter: capi.get_start_time_ext
+            getter: capi.get_start_time_ext,
+            setter: capi.set_start_time_ext
         }),
         model_name : svars::StateString({
             setter: capi.set_model_name
@@ -1680,6 +1681,7 @@ M.Mapmodel = StaticEntity.clone({
         self.set_attr("pitch", 0, nd[2])
         self.set_attr("roll", 0, nd[3])
         self.set_attr("scale", 0, nd[4])
+        self.set_attr("start_time", 0, nd[5])
         self.set_attr("attachments", [])
         self.set_attr("animation", anims.mapmodel | animctl.LOOP)
     },

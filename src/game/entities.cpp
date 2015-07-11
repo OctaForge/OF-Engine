@@ -116,7 +116,12 @@ namespace entities
         ofentity *oe = (ofentity *)ents[uid];
         if (!oe || !oe->m) return;
         oe->m->anim = anim;
-        oe->m->start_time = lastmillis;
+    });
+
+    CLUAICOMMAND(set_start_time_ext, void, (int uid, int stime), {
+        ofentity *oe = (ofentity *)ents[uid];
+        if (!oe || !oe->m) return;
+        oe->m->start_time = stime;
     });
 
     CLUAICOMMAND(get_start_time_ext, bool, (int uid, int *val), {
