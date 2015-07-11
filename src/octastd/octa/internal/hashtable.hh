@@ -401,14 +401,14 @@ protected:
 
         Hashtable &operator=(Hashtable &&ht) {
             clear();
-            octa::swap(p_size, ht.p_size);
-            octa::swap(p_len, ht.p_len);
-            octa::swap(p_chunks, ht.p_chunks);
-            octa::swap(p_unused, ht.p_unused);
-            octa::swap(p_data.first(), ht.p_data.first());
-            octa::swap(p_data.second().second(), ht.p_data.second().second());
+            swap_adl(p_size, ht.p_size);
+            swap_adl(p_len, ht.p_len);
+            swap_adl(p_chunks, ht.p_chunks);
+            swap_adl(p_unused, ht.p_unused);
+            swap_adl(p_data.first(), ht.p_data.first());
+            swap_adl(p_data.second().second(), ht.p_data.second().second());
             if (AllocatorPropagateOnContainerMoveAssignment<A>::value)
-                octa::swap(p_data.second().first(), ht.p_data.second().first());
+                swap_adl(p_data.second().first(), ht.p_data.second().first());
             return *this;
         }
 
@@ -424,14 +424,14 @@ protected:
         }
 
         void swap(Hashtable &ht) {
-            octa::swap(p_size, ht.p_size);
-            octa::swap(p_len, ht.p_len);
-            octa::swap(p_chunks, ht.p_chunks);
-            octa::swap(p_unused, ht.p_unused);
-            octa::swap(p_data.first(), ht.p_data.first());
-            octa::swap(p_data.second().second(), ht.p_data.second().second());
+            swap_adl(p_size, ht.p_size);
+            swap_adl(p_len, ht.p_len);
+            swap_adl(p_chunks, ht.p_chunks);
+            swap_adl(p_unused, ht.p_unused);
+            swap_adl(p_data.first(), ht.p_data.first());
+            swap_adl(p_data.second().second(), ht.p_data.second().second());
             if (AllocatorPropagateOnContainerSwap<A>::value)
-                octa::swap(p_data.second().first(), ht.p_data.second().first());
+                swap_adl(p_data.second().first(), ht.p_data.second().first());
         }
 
 public:

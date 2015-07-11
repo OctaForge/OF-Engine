@@ -9,32 +9,33 @@
 #include <stddef.h>
 
 #include "octa/type_traits.hh"
+#include "octa/internal/tuple.hh"
 
 namespace octa {
 
 /* move */
 
 template<typename T>
-static inline constexpr RemoveReference<T> &&move(T &&v) {
+inline constexpr RemoveReference<T> &&move(T &&v) {
     return static_cast<RemoveReference<T> &&>(v);
 }
 
 /* forward */
 
 template<typename T>
-static inline constexpr T &&forward(RemoveReference<T> &v) {
+inline constexpr T &&forward(RemoveReference<T> &v) {
     return static_cast<T &&>(v);
 }
 
 template<typename T>
-static inline constexpr T &&forward(RemoveReference<T> &&v) {
+inline constexpr T &&forward(RemoveReference<T> &&v) {
     return static_cast<T &&>(v);
 }
 
 /* exchange */
 
 template<typename T, typename U = T>
-T exchange(T &v, U &&nv) {
+inline T exchange(T &v, U &&nv) {
     T old = move(v);
     v = forward<U>(nv);
     return old;
@@ -48,21 +49,19 @@ template<typename T> AddRvalueReference<T> declval();
 
 namespace detail {
     template<typename T>
-    struct SwapTest {
-        template<typename U, void (U::*)(U &)> struct Test {};
-        template<typename U> static char test(Test<U, &U::swap> *);
-        template<typename U> static  int test(...);
-        static constexpr bool value = (sizeof(test<T>(0)) == sizeof(char));
-    };
+    auto test_swap(int) ->
+        decltype(IsVoid<decltype(declval<T>().swap(declval<T &>()))>());
+    template<typename>
+    False test_swap(...);
 
-    template<typename T> inline void swap(T &a, T &b, EnableIf<
-        detail::SwapTest<T>::value, bool
+    template<typename T> inline void swap_fb(T &a, T &b, EnableIf<
+        decltype(test_swap<T>(0))::value, bool
     > = true) {
         a.swap(b);
     }
 
-    template<typename T> inline void swap(T &a, T &b, EnableIf<
-        !detail::SwapTest<T>::value, bool
+    template<typename T> inline void swap_fb(T &a, T &b, EnableIf<
+        !decltype(test_swap<T>(0))::value, bool
     > = true) {
         T c(move(a));
         a = move(b);
@@ -70,13 +69,20 @@ namespace detail {
     }
 }
 
-template<typename T> void swap(T &a, T &b) {
-   detail::swap(a, b);
+template<typename T> inline void swap(T &a, T &b) {
+   detail::swap_fb(a, b);
 }
 
-template<typename T, Size N> void swap(T (&a)[N], T (&b)[N]) {
+template<typename T, Size N> inline void swap(T (&a)[N], T (&b)[N]) {
     for (Size i = 0; i < N; ++i) {
-        octa::swap(a[i], b[i]);
+        swap(a[i], b[i]);
+    }
+}
+
+namespace detail {
+    template<typename T> inline void swap_adl(T &a, T &b) {
+        using octa::swap;
+        swap(a, b);
     }
 }
 
@@ -133,8 +139,8 @@ struct Pair {
     }
 
     void swap(Pair &v) {
-        swap(first, v.first);
-        swap(second, v.second);
+        detail::swap_adl(first, v.first);
+        detail::swap_adl(second, v.second);
     }
 };
 
@@ -158,12 +164,98 @@ namespace detail {
 } /* namespace detail */
 
 template<typename T, typename U>
-Pair<typename detail::MakePairRet<T>::Type,
-     typename detail::MakePairRet<U>::Type
+inline Pair<typename detail::MakePairRet<T>::Type,
+            typename detail::MakePairRet<U>::Type
  > make_pair(T &&a, U &&b) {
     return Pair<typename detail::MakePairRet<T>::Type,
                 typename detail::MakePairRet<U>::Type
     >(forward<T>(a), forward<U>(b));;
+}
+
+template<typename T, typename U>
+inline constexpr bool operator==(const Pair<T, U> &x, const Pair<T, U> &y) {
+    return (x.first == y.first) && (x.second == y.second);
+}
+
+template<typename T, typename U>
+inline constexpr bool operator!=(const Pair<T, U> &x, const Pair<T, U> &y) {
+    return (x.first != y.first) || (x.second != y.second);
+}
+
+template<typename T, typename U>
+inline constexpr bool operator<(const Pair<T, U> &x, const Pair<T, U> &y) {
+    return (x.first < y.first)
+        ? true
+        : ((y.first < x.first)
+            ? false
+            : ((x.second < y.second)
+                ? true
+                : false));
+}
+
+template<typename T, typename U>
+inline constexpr bool operator>(const Pair<T, U> &x, const Pair<T, U> &y) {
+    return (y < x);
+}
+
+template<typename T, typename U>
+inline constexpr bool operator<=(const Pair<T, U> &x, const Pair<T, U> &y) {
+    return !(y < x);
+}
+
+template<typename T, typename U>
+inline constexpr bool operator>=(const Pair<T, U> &x, const Pair<T, U> &y) {
+    return !(x < y);
+}
+
+template<typename T, typename U>
+struct TupleSize<Pair<T, U>>: IntegralConstant<Size, 2> {};
+
+template<typename T, typename U>
+struct TupleElementBase<0, Pair<T, U>> {
+    using Type = T;
+};
+
+template<typename T, typename U>
+struct TupleElementBase<1, Pair<T, U>> {
+    using Type = U;
+};
+
+namespace detail {
+    template<Size> struct GetPair;
+
+    template<> struct GetPair<0> {
+        template<typename T, typename U>
+        static T &get(Pair<T, U> &p) { return p.first; }
+        template<typename T, typename U>
+        static const T &get(const Pair<T, U> &p) { return p.first; }
+        template<typename T, typename U>
+        static T &&get(Pair<T, U> &&p) { return forward<T>(p.first); }
+    };
+
+    template<> struct GetPair<1> {
+        template<typename T, typename U>
+        static U &get(Pair<T, U> &p) { return p.second; }
+        template<typename T, typename U>
+        static const U &get(const Pair<T, U> &p) { return p.second; }
+        template<typename T, typename U>
+        static U &&get(Pair<T, U> &&p) { return forward<U>(p.second); }
+    };
+}
+
+template<Size I, typename T, typename U>
+TupleElement<I, Pair<T, U>> &get(Pair<T, U> &p) {
+    return detail::GetPair<I>::get(p);
+}
+
+template<Size I, typename T, typename U>
+const TupleElement<I, Pair<T, U>> &get(const Pair<T, U> &p) {
+    return detail::GetPair<I>::get(p);
+}
+
+template<Size I, typename T, typename U>
+TupleElement<I, Pair<T, U>> &&get(Pair<T, U> &&p) {
+    return detail::GetPair<I>::get(move(p));
 }
 
 namespace detail {
@@ -212,8 +304,8 @@ namespace detail {
         const U &second() const { return p_second; }
 
         void swap(CompressedPairBase &v) {
-            octa::swap(p_first, v.p_first);
-            octa::swap(p_second, v.p_second);
+            swap_adl(p_first, v.p_first);
+            swap_adl(p_second, v.p_second);
         }
     };
 
@@ -232,7 +324,7 @@ namespace detail {
         const U &second() const { return p_second; }
 
         void swap(CompressedPairBase &v) {
-            octa::swap(p_second, v.p_second);
+            swap_adl(p_second, v.p_second);
         }
     };
 
@@ -251,7 +343,7 @@ namespace detail {
         const U &second() const { return *this; }
 
         void swap(CompressedPairBase &v) {
-            octa::swap(p_first, v.p_first);
+            swap_adl(p_first, v.p_first);
         }
     };
 

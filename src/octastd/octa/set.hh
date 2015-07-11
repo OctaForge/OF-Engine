@@ -26,7 +26,7 @@ namespace detail {
         }
         template<typename U>
         static inline void set_key(T &, const U &, A &) {}
-        static inline void swap_elem(T &a, T &b) { octa::swap(a, b); }
+        static inline void swap_elem(T &a, T &b) { swap_adl(a, b); }
     };
 
     template<typename T, typename H, typename C, typename A, bool IsMultihash>
@@ -40,7 +40,7 @@ namespace detail {
 
     public:
         using Key = T;
-        using Size = Size;
+        using Size = octa::Size;
         using Difference = Ptrdiff;
         using Hasher = H;
         using KeyEqual = C;

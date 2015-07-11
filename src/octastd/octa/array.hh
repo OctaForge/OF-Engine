@@ -11,12 +11,13 @@
 #include "octa/algorithm.hh"
 #include "octa/range.hh"
 #include "octa/string.hh"
+#include "octa/internal/tuple.hh"
 
 namespace octa {
 
 template<typename T, Size N>
 struct Array {
-    using Size = Size;
+    using Size = octa::Size;
     using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
@@ -74,6 +75,59 @@ struct Array {
 
     T p_buf[(N > 0) ? N : 1];
 };
+
+template<typename T, Size N>
+struct TupleSize<Array<T, N>>: IntegralConstant<Size, N> {};
+
+template<Size I, typename T, Size N>
+struct TupleElementBase<I, Array<T, N>> {
+    using Type = T;
+};
+
+template<Size I, typename T, Size N>
+TupleElement<I, Array<T, N>> &get(Array<T, N> &a) {
+    return a[I];
+}
+
+template<Size I, typename T, Size N>
+const TupleElement<I, Array<T, N>> &get(const Array<T, N> &a) {
+    return a[I];
+}
+
+template<Size I, typename T, Size N>
+TupleElement<I, Array<T, N>> &&get(Array<T, N> &&a) {
+    return a[I];
+}
+
+template<typename T, Size N>
+inline bool operator==(const Array<T, N> &x, const Array<T, N> &y) {
+    return equal(x.iter(), y.iter());
+}
+
+template<typename T, Size N>
+inline bool operator!=(const Array<T, N> &x, const Array<T, N> &y) {
+    return !(x == y);
+}
+
+template<typename T, Size N>
+inline bool operator<(const Array<T, N> &x, const Array<T, N> &y) {
+    return lexicographical_compare(x.iter(), y.iter());
+}
+
+template<typename T, Size N>
+inline bool operator>(const Array<T, N> &x, const Array<T, N> &y) {
+    return (y < x);
+}
+
+template<typename T, Size N>
+inline bool operator<=(const Array<T, N> &x, const Array<T, N> &y) {
+    return !(y < x);
+}
+
+template<typename T, Size N>
+inline bool operator>=(const Array<T, N> &x, const Array<T, N> &y) {
+    return !(x < y);
+}
 
 } /* namespace octa */
 

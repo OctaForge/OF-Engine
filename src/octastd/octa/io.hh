@@ -142,44 +142,44 @@ static FileStream err(::stderr);
 
 /* no need to call anything from FileStream, prefer simple calls... */
 
-static inline void write(const char *s) {
+inline void write(const char *s) {
     fputs(s, ::stdout);
 }
 
 template<typename A>
-static inline void write(const AnyString<A> &s) {
+inline void write(const AnyString<A> &s) {
     fwrite(s.data(), 1, s.size(), ::stdout);
 }
 
 template<typename T>
-static inline void write(const T &v) {
+inline void write(const T &v) {
     write(octa::to_string(v));
 }
 
 template<typename T, typename ...A>
-static inline void write(const T &v, const A &...args) {
+inline void write(const T &v, const A &...args) {
     write(v);
     write(args...);
 }
 
-static inline void writeln(const char *s) {
+inline void writeln(const char *s) {
     write(s);
     putc('\n', ::stdout);
 }
 
 template<typename A>
-static inline void writeln(const AnyString<A> &s) {
+inline void writeln(const AnyString<A> &s) {
     write(s);
     putc('\n', ::stdout);
 }
 
 template<typename T>
-static inline void writeln(const T &v) {
+inline void writeln(const T &v) {
     writeln(octa::to_string(v));
 }
 
 template<typename T, typename ...A>
-static inline void writeln(const T &v, const A &...args) {
+inline void writeln(const T &v, const A &...args) {
     write(v);
     write(args...);
     putc('\n', ::stdout);
@@ -197,7 +197,7 @@ namespace detail {
 }
 
 template<typename ...A>
-static inline void writef(const char *fmt, const A &...args) {
+inline void writef(const char *fmt, const A &...args) {
     char buf[512];
     Ptrdiff need = format(detail::FormatOutRange<sizeof(buf)>(buf),
         fmt, args...);
@@ -213,19 +213,19 @@ static inline void writef(const char *fmt, const A &...args) {
 }
 
 template<typename AL, typename ...A>
-static inline void writef(const AnyString<AL> &fmt,
+inline void writef(const AnyString<AL> &fmt,
                           const A &...args) {
     writef(fmt.data(), args...);
 }
 
 template<typename ...A>
-static inline void writefln(const char *fmt, const A &...args) {
+inline void writefln(const char *fmt, const A &...args) {
     writef(fmt, args...);
     putc('\n', ::stdout);
 }
 
 template<typename AL, typename ...A>
-static inline void writefln(const AnyString<AL> &fmt,
+inline void writefln(const AnyString<AL> &fmt,
                             const A &...args) {
     writef(fmt, args...);
     putc('\n', ::stdout);
