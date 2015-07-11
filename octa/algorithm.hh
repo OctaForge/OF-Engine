@@ -22,7 +22,7 @@ R partition(R range, U pred) {
     R ret = range;
     for (; !range.empty(); range.pop_front()) {
         if (pred(range.front())) {
-            octa::swap(range.front(), ret.front());
+            detail::swap_adl(range.front(), ret.front());
             ret.pop_front();
         }
     }
@@ -66,7 +66,7 @@ namespace detail {
             if (((ch + 1) <= e) && compare(range[sw], range[ch + 1]))
                 sw = ch + 1;
             if (sw != r) {
-                octa::swap(range[r], range[sw]);
+                detail::swap_adl(range[r], range[sw]);
                 r = sw;
             } else return;
         }
@@ -82,7 +82,7 @@ namespace detail {
         }
         RangeSize<R> e = len - 1;
         while (e > 0) {
-            octa::swap(range[e], range[0]);
+            detail::swap_adl(range[e], range[0]);
             --e;
             detail::hs_sift_down(range, 0, e, compare);
         }
@@ -98,15 +98,15 @@ namespace detail {
             detail::heapsort(range, compare);
             return;
         }
-        octa::swap(range[range.size() / 2], range.back());
+        detail::swap_adl(range[range.size() / 2], range.back());
         RangeSize<R> pi = 0;
         R pr = range;
         pr.pop_back();
         for (; !pr.empty(); pr.pop_front()) {
             if (compare(pr.front(), range.back()))
-                octa::swap(pr.front(), range[pi++]);
+                detail::swap_adl(pr.front(), range[pi++]);
         }
-        octa::swap(range[pi], range.back());
+        detail::swap_adl(range[pi], range.back());
         detail::introloop(range.slice(0, pi), compare, depth - 1);
         detail::introloop(range.slice(pi + 1, range.size()), compare,
             depth - 1);
@@ -212,6 +212,30 @@ inline T clamp(const T &v, const U &lo, const U &hi) {
 template<typename T, typename U, typename C>
 inline T clamp(const T &v, const U &lo, const U &hi, C compare) {
     return octa::max(T(lo), octa::min(v, T(hi), compare), compare);
+}
+
+/* lexicographical compare */
+
+template<typename R1, typename R2>
+bool lexicographical_compare(R1 range1, R2 range2) {
+    while (!range1.empty() && !range2.empty()) {
+        if (range1.front() < range2.front()) return true;
+        if (range2.front() < range1.front()) return false;
+        range1.pop_front();
+        range2.pop_front();
+    }
+    return (range1.empty() && !range2.empty());
+}
+
+template<typename R1, typename R2, typename C>
+bool lexicographical_compare(R1 range1, R2 range2, C compare) {
+    while (!range1.empty() && !range2.empty()) {
+        if (compare(range1.front(), range2.front())) return true;
+        if (compare(range2.front(), range1.front())) return false;
+        range1.pop_front();
+        range2.pop_front();
+    }
+    return (range1.empty() && !range2.empty());
 }
 
 /* algos that don't change the range */
@@ -340,7 +364,7 @@ R2 move(R1 irange, R2 orange) {
 template<typename R>
 void reverse(R range) {
     while (!range.empty()) {
-        octa::swap(range.front(), range.back());
+        detail::swap_adl(range.front(), range.back());
         range.pop_front();
         range.pop_back();
     }
@@ -368,7 +392,7 @@ void generate(R range, F gen) {
 template<typename R1, typename R2>
 Pair<R1, R2> swap_ranges(R1 range1, R2 range2) {
     while (!range1.empty() && !range2.empty()) {
-        octa::swap(range1.front(), range2.front());
+        detail::swap_adl(range1.front(), range2.front());
         range1.pop_front();
         range2.pop_front();
     }

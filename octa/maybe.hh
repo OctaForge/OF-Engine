@@ -240,7 +240,7 @@ public:
 
     void swap(Maybe &v) {
         if (this->p_engaged == v.p_engaged) {
-            if (this->p_engaged) octa::swap(this->p_value, v.p_value);
+            if (this->p_engaged) detail::swap_adl(this->p_value, v.p_value);
         } else {
             if (this->p_engaged) {
                 ::new(address_of(v.p_value)) Value(move(this->p_value));
@@ -249,7 +249,7 @@ public:
                 ::new(address_of(this->p_value)) Value(move(v.p_value));
                 v.p_value.~Value();
             }
-            octa::swap(this->p_engaged, v.p_engaged);
+            detail::swap_adl(this->p_engaged, v.p_engaged);
         }
     }
 
@@ -261,163 +261,163 @@ public:
 /* maybe vs maybe */
 
 template<typename T>
-static inline constexpr bool operator==(const Maybe<T> &a, const Maybe<T> &b) {
+inline constexpr bool operator==(const Maybe<T> &a, const Maybe<T> &b) {
     return (bool(a) != bool(b)) ? false : (!bool(a) ? true : (*a == *b));
 }
 
 template<typename T>
-static inline constexpr bool operator!=(const Maybe<T> &a, const Maybe<T> &b) {
+inline constexpr bool operator!=(const Maybe<T> &a, const Maybe<T> &b) {
     return !(a == b);
 }
 
 template<typename T>
-static inline constexpr bool operator<(const Maybe<T> &a, const Maybe<T> &b) {
+inline constexpr bool operator<(const Maybe<T> &a, const Maybe<T> &b) {
     return !bool(b) ? false : (!bool(a) ? true : (*a < *b));
 }
 
 template<typename T>
-static inline constexpr bool operator>(const Maybe<T> &a, const Maybe<T> &b) {
+inline constexpr bool operator>(const Maybe<T> &a, const Maybe<T> &b) {
     return b < a;
 }
 
 template<typename T>
-static inline constexpr bool operator<=(const Maybe<T> &a, const Maybe<T> &b) {
+inline constexpr bool operator<=(const Maybe<T> &a, const Maybe<T> &b) {
     return !(b < a);
 }
 
 template<typename T>
-static inline constexpr bool operator>=(const Maybe<T> &a, const Maybe<T> &b) {
+inline constexpr bool operator>=(const Maybe<T> &a, const Maybe<T> &b) {
     return !(a < b);
 }
 
 /* maybe vs nothing */
 
 template<typename T>
-static inline constexpr bool operator==(const Maybe<T> &v, Nothing) {
+inline constexpr bool operator==(const Maybe<T> &v, Nothing) {
     return !bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator==(Nothing, const Maybe<T> &v) {
+inline constexpr bool operator==(Nothing, const Maybe<T> &v) {
     return !bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator!=(const Maybe<T> &v, Nothing) {
+inline constexpr bool operator!=(const Maybe<T> &v, Nothing) {
     return bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator!=(Nothing, const Maybe<T> &v) {
+inline constexpr bool operator!=(Nothing, const Maybe<T> &v) {
     return bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator<(const Maybe<T> &, Nothing) {
+inline constexpr bool operator<(const Maybe<T> &, Nothing) {
     return false;
 }
 
 template<typename T>
-static inline constexpr bool operator<(Nothing, const Maybe<T> &v) {
+inline constexpr bool operator<(Nothing, const Maybe<T> &v) {
     return bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator<=(const Maybe<T> &v, Nothing) {
+inline constexpr bool operator<=(const Maybe<T> &v, Nothing) {
     return !bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator<=(Nothing, const Maybe<T> &) {
+inline constexpr bool operator<=(Nothing, const Maybe<T> &) {
     return true;
 }
 
 template<typename T>
-static inline constexpr bool operator>(const Maybe<T> &v, Nothing) {
+inline constexpr bool operator>(const Maybe<T> &v, Nothing) {
     return bool(v);
 }
 
 template<typename T>
-static inline constexpr bool operator>(Nothing, const Maybe<T> &) {
+inline constexpr bool operator>(Nothing, const Maybe<T> &) {
     return false;
 }
 
 template<typename T>
-static inline constexpr bool operator>=(const Maybe<T> &, Nothing) {
+inline constexpr bool operator>=(const Maybe<T> &, Nothing) {
     return true;
 }
 
 template<typename T>
-static inline constexpr bool operator>=(Nothing, const Maybe<T> &v) {
+inline constexpr bool operator>=(Nothing, const Maybe<T> &v) {
     return !bool(v);
 }
 
 /* maybe vs T */
 
 template<typename T>
-static inline constexpr bool operator==(const Maybe<T> &a, const T &b) {
+inline constexpr bool operator==(const Maybe<T> &a, const T &b) {
     return bool(a) ? (*a == b) : false;
 }
 
 template<typename T>
-static inline constexpr bool operator==(const T &b, const Maybe<T> &a) {
+inline constexpr bool operator==(const T &b, const Maybe<T> &a) {
     return bool(a) ? (*a == b) : false;
 }
 
 template<typename T>
-static inline constexpr bool operator!=(const Maybe<T> &a, const T &b) {
+inline constexpr bool operator!=(const Maybe<T> &a, const T &b) {
     return bool(a) ? !(*a == b) : true;
 }
 
 template<typename T>
-static inline constexpr bool operator!=(const T &b, const Maybe<T> &a) {
+inline constexpr bool operator!=(const T &b, const Maybe<T> &a) {
     return bool(a) ? !(*a == b) : true;
 }
 
 template<typename T>
-static inline constexpr bool operator<(const Maybe<T> &a, const T &b) {
+inline constexpr bool operator<(const Maybe<T> &a, const T &b) {
     return bool(a) ? Less<T>()(*a, b) : true;
 }
 
 template<typename T>
-static inline constexpr bool operator<(const T &b, const Maybe<T> &a) {
+inline constexpr bool operator<(const T &b, const Maybe<T> &a) {
     return bool(a) ? Less<T>()(b, *a) : false;
 }
 
 template<typename T>
-static inline constexpr bool operator<=(const Maybe<T> &a, const T &b) {
+inline constexpr bool operator<=(const Maybe<T> &a, const T &b) {
     return !(a > b);
 }
 
 template<typename T>
-static inline constexpr bool operator<=(const T &b, const Maybe<T> &a) {
+inline constexpr bool operator<=(const T &b, const Maybe<T> &a) {
     return !(b > a);
 }
 
 template<typename T>
-static inline constexpr bool operator>(const Maybe<T> &a, const T &b) {
+inline constexpr bool operator>(const Maybe<T> &a, const T &b) {
     return bool(a) ? (b < a) : true;
 }
 
 template<typename T>
-static inline constexpr bool operator>(const T &b, const Maybe<T> &a) {
+inline constexpr bool operator>(const T &b, const Maybe<T> &a) {
     return bool(a) ? (a < b) : true;
 }
 
 template<typename T>
-static inline constexpr bool operator>=(const Maybe<T> &a, const T &b) {
+inline constexpr bool operator>=(const Maybe<T> &a, const T &b) {
     return !(a < b);
 }
 
 template<typename T>
-static inline constexpr bool operator>=(const T &b, const Maybe<T> &a) {
+inline constexpr bool operator>=(const T &b, const Maybe<T> &a) {
     return !(b < a);
 }
 
 /* make maybe */
 
 template<typename T>
-constexpr Maybe<Decay<T>> make_maybe(T &&v) {
+inline constexpr Maybe<Decay<T>> make_maybe(T &&v) {
     return Maybe<Decay<T>>(forward<T>(v));
 }
 

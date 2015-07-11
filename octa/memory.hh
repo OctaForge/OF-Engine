@@ -483,7 +483,7 @@ private:
 
 namespace detail {
     template<typename T> struct BoxIf {
-        using Box = Box<T>;
+        using BoxType = Box<T>;
     };
 
     template<typename T> struct BoxIf<T[]> {
@@ -496,7 +496,7 @@ namespace detail {
 }
 
 template<typename T, typename ...A>
-typename detail::BoxIf<T>::Box make_box(A &&...args) {
+typename detail::BoxIf<T>::BoxType make_box(A &&...args) {
     return Box<T>(new T(forward<A>(args)...));
 }
 
@@ -529,7 +529,7 @@ template<> struct Allocator<const void> {
 };
 
 template<typename T> struct Allocator {
-    using Size = Size;
+    using Size = octa::Size;
     using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
@@ -566,7 +566,7 @@ template<typename T> struct Allocator {
 };
 
 template<typename T> struct Allocator<const T> {
-    using Size = Size;
+    using Size = octa::Size;
     using Difference = Ptrdiff;
     using Value = const T;
     using Reference = const T &;
@@ -1068,9 +1068,50 @@ inline AllocatorType<A> allocator_container_copy(const A &a) {
     >(), a);
 }
 
+/* allocator arg */
+
 struct AllocatorArg {};
 
 constexpr AllocatorArg allocator_arg = AllocatorArg();
+
+/* uses allocator */
+
+namespace detail {
+    template<typename T> struct HasAllocatorType {
+        template<typename U> static char test(typename U::Allocator *);
+        template<typename U> static  int test(...);
+        static constexpr bool value = (sizeof(test<T>(0)) == 1);
+    };
+
+    template<typename T, typename A, bool = HasAllocatorType<T>::value>
+    struct UsesAllocatorBase: IntegralConstant<bool,
+        IsConvertible<A, typename T::Allocator>::value
+    > {};
+
+    template<typename T, typename A>
+    struct UsesAllocatorBase<T, A, false>: False {};
+}
+
+template<typename T, typename A>
+struct UsesAllocator: detail::UsesAllocatorBase<T, A> {};
+
+/* uses allocator ctor */
+
+namespace detail {
+    template<typename T, typename A, typename ...Args>
+    struct UsesAllocCtor {
+        static constexpr bool ua = UsesAllocator<T, A>::value;
+        static constexpr bool ic = IsConstructible<
+            T, AllocatorArg, A, Args...
+        >::value;
+        static constexpr int value = ua ? (2 - ic) : 0;
+    };
+}
+
+template<typename T, typename A, typename ...Args>
+struct UsesAllocatorConstructor: IntegralConstant<int,
+    detail::UsesAllocCtor<T, A, Args...>::value
+> {};
 
 } /* namespace octa */
 

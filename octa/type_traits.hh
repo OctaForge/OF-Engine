@@ -67,6 +67,50 @@ using False = IntegralConstant<bool, false>;
 
 template<typename T, T val> constexpr T IntegralConstant<T, val>::value;
 
+/* and */
+
+namespace detail {
+    template<bool B, typename ...A> struct AndBase;
+
+    template<typename ...A>
+    struct AndBase<false, A...>: False {};
+
+    template<>
+    struct AndBase<true>: True {};
+
+    template<typename T>
+    struct AndBase<true, T>: IntegralConstant<bool, T::Type::value> {};
+
+    template<typename T, typename ...A>
+    struct AndBase<true, T, A...>: AndBase<T::Type::value, A...> {};
+}
+
+template<typename T, typename ...A>
+struct And: detail::AndBase<T::Type::value, A...> {};
+
+/* or */
+
+namespace detail {
+    template<bool B, typename ...A> struct OrBase;
+
+    template<>
+    struct OrBase<false>: False {};
+
+    template<typename T, typename ...A>
+    struct OrBase<false, T, A...>: OrBase<T::Type::value, A...> {};
+
+    template<typename ...A>
+    struct OrBase<true, A...>: True {};
+}
+
+template<typename T, typename ...A>
+struct Or: detail::OrBase<T::Type::value, A...> {};
+
+/* not */
+
+template<typename T>
+struct Not: IntegralConstant<bool, !T::Type::value> {};
+
 /* is void */
 
 namespace detail {
@@ -799,9 +843,8 @@ using AddPointer = typename detail::AddPointerBase<T>::Type;
 /* add lvalue reference */
 
 namespace detail {
-    template<typename T> struct AddLr       { using Type = T &; };
-    template<typename T> struct AddLr<T  &> { using Type = T &; };
-    template<typename T> struct AddLr<T &&> { using Type = T &; };
+    template<typename T> struct AddLr      { using Type = T &; };
+    template<typename T> struct AddLr<T &> { using Type = T &; };
     template<> struct AddLr<void> {
         using Type = void;
     };
@@ -819,9 +862,7 @@ namespace detail {
 /* add rvalue reference */
 
 namespace detail {
-    template<typename T> struct AddRr       { using Type = T &&; };
-    template<typename T> struct AddRr<T  &> { using Type = T &&; };
-    template<typename T> struct AddRr<T &&> { using Type = T &&; };
+    template<typename T> struct AddRr { using Type = T &&; };
     template<> struct AddRr<void> {
         using Type = void;
     };
@@ -1193,6 +1234,7 @@ namespace detail {
 
 template<typename T>
 using UnderlyingType = typename detail::UnderlyingTypeBase<T>::Type;
+
 } /* namespace octa */
 
 #endif

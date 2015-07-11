@@ -218,7 +218,7 @@ OCTA_HASH_BASIC(Wchar)
 #undef OCTA_HASH_BASIC
 
 namespace detail {
-    static inline Size mem_hash(const void *p, Size l) {
+    inline Size mem_hash(const void *p, Size l) {
         const byte *d = (const byte *)p;
         Size h = 5381;
         for (Size i = 0; i < l; ++i) h = ((h << 5) + h) ^ d[i];
