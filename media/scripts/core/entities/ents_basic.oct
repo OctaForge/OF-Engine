@@ -1647,7 +1647,7 @@ M.Mapmodel = StaticEntity.clone({
     sauer_type: 8,
     attr_num  : 4,
 
-    __attr_names: [ "yaw", "pitch", "roll", "scale" ],
+    __attr_names: [ "yaw", "pitch", "roll", "scale", "start_time" ],
 
     __properties: {
         animation: svars::StateInteger({
