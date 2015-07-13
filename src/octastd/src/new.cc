@@ -5,15 +5,15 @@
 
 #include <stdlib.h>
 
-#include "octa/types.hh"
+#include "ostd/types.hh"
 
-void *operator new(octa::Size size) {
+void *operator new(ostd::Size size) {
     void  *p = malloc(size);
     if   (!p) abort();
     return p;
 }
 
-void *operator new[](octa::Size size) {
+void *operator new[](ostd::Size size) {
     void  *p = malloc(size);
     if   (!p) abort();
     return p;

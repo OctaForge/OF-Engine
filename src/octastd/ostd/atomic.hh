@@ -3,16 +3,16 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_ATOMIC_HH
-#define OCTA_ATOMIC_HH
+#ifndef OSTD_ATOMIC_HH
+#define OSTD_ATOMIC_HH
 
 #include <stdint.h>
 #include <stddef.h>
 
-#include "octa/types.hh"
-#include "octa/type_traits.hh"
+#include "ostd/types.hh"
+#include "ostd/type_traits.hh"
 
-namespace octa {
+namespace ostd {
 
 enum class MemoryOrder {
     relaxed = 0,

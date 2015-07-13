@@ -3,18 +3,18 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_SET_HH
-#define OCTA_SET_HH
+#ifndef OSTD_SET_HH
+#define OSTD_SET_HH
 
-#include "octa/types.hh"
-#include "octa/utility.hh"
-#include "octa/memory.hh"
-#include "octa/functional.hh"
-#include "octa/initializer_list.hh"
+#include "ostd/types.hh"
+#include "ostd/utility.hh"
+#include "ostd/memory.hh"
+#include "ostd/functional.hh"
+#include "ostd/initializer_list.hh"
 
-#include "octa/internal/hashtable.hh"
+#include "ostd/internal/hashtable.hh"
 
-namespace octa {
+namespace ostd {
 
 namespace detail {
     template<typename T, typename A> struct SetBase {
@@ -40,7 +40,7 @@ namespace detail {
 
     public:
         using Key = T;
-        using Size = octa::Size;
+        using Size = ostd::Size;
         using Difference = Ptrdiff;
         using Hasher = H;
         using KeyEqual = C;
@@ -148,6 +148,6 @@ template<
     typename A = Allocator<T>
 > using Multiset = detail::SetImpl<T, H, C, A, true>;
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

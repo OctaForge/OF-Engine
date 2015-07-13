@@ -3,27 +3,27 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_INITIALIZER_LIST_HH
-#define OCTA_INITIALIZER_LIST_HH
+#ifndef OSTD_INITIALIZER_LIST_HH
+#define OSTD_INITIALIZER_LIST_HH
 
 #include <stddef.h>
 
-#include "octa/range.hh"
+#include "ostd/range.hh"
 
-#ifndef OCTA_ALLOW_CXXSTD
+#ifndef OSTD_ALLOW_CXXSTD
 /* must be in std namespace otherwise the compiler won't know about it */
 namespace std {
 
 template<typename T>
 class initializer_list {
     const T *p_buf;
-    octa::Size p_len;
+    ostd::Size p_len;
 
-    constexpr initializer_list(const T *v, octa::Size n): p_buf(v), p_len(n) {}
+    constexpr initializer_list(const T *v, ostd::Size n): p_buf(v), p_len(n) {}
 public:
     constexpr initializer_list(): p_buf(nullptr), p_len(0) {}
 
-    constexpr octa::Size size() const { return p_len; }
+    constexpr ostd::Size size() const { return p_len; }
 
     constexpr const T *begin() const { return p_buf; }
     constexpr const T *end() const { return p_buf + p_len; }
@@ -34,7 +34,7 @@ public:
 #include <initializer_list>
 #endif
 
-namespace octa {
+namespace ostd {
 
 template<typename T> using InitializerList = std::initializer_list<T>;
 

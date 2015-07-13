@@ -3,22 +3,22 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_FUNCTIONAL_HH
-#define OCTA_FUNCTIONAL_HH
+#ifndef OSTD_FUNCTIONAL_HH
+#define OSTD_FUNCTIONAL_HH
 
 #include <string.h>
 
-#include "octa/platform.hh"
-#include "octa/new.hh"
-#include "octa/memory.hh"
-#include "octa/utility.hh"
-#include "octa/type_traits.hh"
+#include "ostd/platform.hh"
+#include "ostd/new.hh"
+#include "ostd/memory.hh"
+#include "ostd/utility.hh"
+#include "ostd/type_traits.hh"
 
-namespace octa {
+namespace ostd {
 
 /* basic function objects */
 
-#define OCTA_DEFINE_BINARY_OP(name, op, RT) \
+#define OSTD_DEFINE_BINARY_OP(name, op, RT) \
 template<typename T> struct name { \
     RT operator()(const T &x, const T &y) const { \
         return x op y; \
@@ -28,24 +28,24 @@ template<typename T> struct name { \
     using Result = RT; \
 };
 
-OCTA_DEFINE_BINARY_OP(Less, <, bool)
-OCTA_DEFINE_BINARY_OP(LessEqual, <=, bool)
-OCTA_DEFINE_BINARY_OP(Greater, >, bool)
-OCTA_DEFINE_BINARY_OP(GreaterEqual, >=, bool)
-OCTA_DEFINE_BINARY_OP(Equal, ==, bool)
-OCTA_DEFINE_BINARY_OP(NotEqual, !=, bool)
-OCTA_DEFINE_BINARY_OP(LogicalAnd, &&, bool)
-OCTA_DEFINE_BINARY_OP(LogicalOr, ||, bool)
-OCTA_DEFINE_BINARY_OP(Modulo, %, T)
-OCTA_DEFINE_BINARY_OP(Multiply, *, T)
-OCTA_DEFINE_BINARY_OP(Divide, /, T)
-OCTA_DEFINE_BINARY_OP(Add, +, T)
-OCTA_DEFINE_BINARY_OP(Subtract, -, T)
-OCTA_DEFINE_BINARY_OP(BitAnd, &, T)
-OCTA_DEFINE_BINARY_OP(BitOr, |, T)
-OCTA_DEFINE_BINARY_OP(BitXor, ^, T)
+OSTD_DEFINE_BINARY_OP(Less, <, bool)
+OSTD_DEFINE_BINARY_OP(LessEqual, <=, bool)
+OSTD_DEFINE_BINARY_OP(Greater, >, bool)
+OSTD_DEFINE_BINARY_OP(GreaterEqual, >=, bool)
+OSTD_DEFINE_BINARY_OP(Equal, ==, bool)
+OSTD_DEFINE_BINARY_OP(NotEqual, !=, bool)
+OSTD_DEFINE_BINARY_OP(LogicalAnd, &&, bool)
+OSTD_DEFINE_BINARY_OP(LogicalOr, ||, bool)
+OSTD_DEFINE_BINARY_OP(Modulo, %, T)
+OSTD_DEFINE_BINARY_OP(Multiply, *, T)
+OSTD_DEFINE_BINARY_OP(Divide, /, T)
+OSTD_DEFINE_BINARY_OP(Add, +, T)
+OSTD_DEFINE_BINARY_OP(Subtract, -, T)
+OSTD_DEFINE_BINARY_OP(BitAnd, &, T)
+OSTD_DEFINE_BINARY_OP(BitOr, |, T)
+OSTD_DEFINE_BINARY_OP(BitXor, ^, T)
 
-#undef OCTA_DEFINE_BINARY_OP
+#undef OSTD_DEFINE_BINARY_OP
 
 template<typename T> struct LogicalNot {
     bool operator()(const T &x) const { return !x; }
@@ -164,7 +164,7 @@ namespace detail {
     };
 }
 
-#if OCTA_BYTE_ORDER == OCTA_ENDIAN_LIL
+#if OSTD_BYTE_ORDER == OSTD_ENDIAN_LIL
 template<typename T> struct FromLilEndian: detail::EndianSame<T> {};
 template<typename T> struct FromBigEndian: EndianSwap<T> {};
 #else
@@ -197,25 +197,25 @@ namespace detail {
     };
 }
 
-#define OCTA_HASH_BASIC(T) template<> struct ToHash<T>: detail::ToHashBase<T> {};
+#define OSTD_HASH_BASIC(T) template<> struct ToHash<T>: detail::ToHashBase<T> {};
 
-OCTA_HASH_BASIC(bool)
-OCTA_HASH_BASIC(char)
-OCTA_HASH_BASIC(short)
-OCTA_HASH_BASIC(int)
-OCTA_HASH_BASIC(long)
+OSTD_HASH_BASIC(bool)
+OSTD_HASH_BASIC(char)
+OSTD_HASH_BASIC(short)
+OSTD_HASH_BASIC(int)
+OSTD_HASH_BASIC(long)
 
-OCTA_HASH_BASIC(sbyte)
-OCTA_HASH_BASIC(byte)
-OCTA_HASH_BASIC(ushort)
-OCTA_HASH_BASIC(uint)
-OCTA_HASH_BASIC(ulong)
+OSTD_HASH_BASIC(sbyte)
+OSTD_HASH_BASIC(byte)
+OSTD_HASH_BASIC(ushort)
+OSTD_HASH_BASIC(uint)
+OSTD_HASH_BASIC(ulong)
 
-OCTA_HASH_BASIC(Char16)
-OCTA_HASH_BASIC(Char32)
-OCTA_HASH_BASIC(Wchar)
+OSTD_HASH_BASIC(Char16)
+OSTD_HASH_BASIC(Char32)
+OSTD_HASH_BASIC(Wchar)
 
-#undef OCTA_HASH_BASIC
+#undef OSTD_HASH_BASIC
 
 namespace detail {
     inline Size mem_hash(const void *p, Size l) {
@@ -797,7 +797,7 @@ struct Function<R(Args...)>: detail::FunctionBase<R, Args...> {
         f.p_stor.manager->call_move_and_destroyf(tmp, move(f.p_stor));
         p_stor.manager->call_move_and_destroyf(f.p_stor, move(p_stor));
         tmp.manager->call_move_and_destroyf(p_stor, move(tmp));
-        octa::swap(p_call, f.p_call);
+        ostd::swap(p_call, f.p_call);
     }
 
     operator bool() const { return p_call != nullptr; }
@@ -906,6 +906,6 @@ namespace detail {
 template<typename F> using FunctionMakeDefaultConstructible
     = typename detail::DcFuncType<F>::Type;
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

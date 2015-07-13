@@ -3,18 +3,18 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_INTERNAL_HASHTABLE_HH
-#define OCTA_INTERNAL_HASHTABLE_HH
+#ifndef OSTD_INTERNAL_HASHTABLE_HH
+#define OSTD_INTERNAL_HASHTABLE_HH
 
 #include <string.h>
 
-#include "octa/types.hh"
-#include "octa/utility.hh"
-#include "octa/memory.hh"
-#include "octa/range.hh"
-#include "octa/initializer_list.hh"
+#include "ostd/types.hh"
+#include "ostd/utility.hh"
+#include "ostd/memory.hh"
+#include "ostd/range.hh"
+#include "ostd/initializer_list.hh"
 
-namespace octa {
+namespace ostd {
 
 namespace detail {
     template<typename T>
@@ -618,6 +618,6 @@ public:
     };
 } /* namespace detail */
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

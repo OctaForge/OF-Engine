@@ -4,13 +4,13 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_INTERNAL_TUPLE_HH
-#define OCTA_INTERNAL_TUPLE_HH
+#ifndef OSTD_INTERNAL_TUPLE_HH
+#define OSTD_INTERNAL_TUPLE_HH
 
-#include "octa/types.hh"
-#include "octa/type_traits.hh"
+#include "ostd/types.hh"
+#include "ostd/type_traits.hh"
 
-namespace octa {
+namespace ostd {
 
 template<typename ...A> class Tuple;
 template<typename T, typename U> struct Pair;
@@ -276,6 +276,6 @@ namespace detail {
     > {};
 }
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

@@ -3,16 +3,16 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_MEMORY_HH
-#define OCTA_MEMORY_HH
+#ifndef OSTD_MEMORY_HH
+#define OSTD_MEMORY_HH
 
 #include <stddef.h>
 
-#include "octa/new.hh"
-#include "octa/utility.hh"
-#include "octa/type_traits.hh"
+#include "ostd/new.hh"
+#include "ostd/utility.hh"
+#include "ostd/type_traits.hh"
 
-namespace octa {
+namespace ostd {
 /* address of */
 
 template<typename T> constexpr T *address_of(T &v) {
@@ -529,7 +529,7 @@ template<> struct Allocator<const void> {
 };
 
 template<typename T> struct Allocator {
-    using Size = octa::Size;
+    using Size = ostd::Size;
     using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
@@ -566,7 +566,7 @@ template<typename T> struct Allocator {
 };
 
 template<typename T> struct Allocator<const T> {
-    using Size = octa::Size;
+    using Size = ostd::Size;
     using Difference = Ptrdiff;
     using Value = const T;
     using Reference = const T &;
@@ -1113,6 +1113,6 @@ struct UsesAllocatorConstructor: IntegralConstant<int,
     detail::UsesAllocCtor<T, A, Args...>::value
 > {};
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

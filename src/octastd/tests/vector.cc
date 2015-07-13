@@ -1,9 +1,9 @@
 #include <assert.h>
 #include <string.h>
-#include "octa/vector.hh"
-#include "octa/string.hh"
+#include "ostd/vector.hh"
+#include "ostd/string.hh"
 
-using namespace octa;
+using namespace ostd;
 
 int main() {
     Vector<int> x = { 5, 10, 15, 20 };
