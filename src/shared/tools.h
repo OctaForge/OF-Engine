@@ -33,10 +33,10 @@ typedef unsigned long long int ullong;
 #define UNUSED
 #endif
 
-using octa::swap;
-using octa::min;
-using octa::max;
-using octa::clamp;
+using ostd::swap;
+using ostd::min;
+using ostd::max;
+using ostd::clamp;
 
 #ifdef __GNUC__
 #define bitscan(mask) (__builtin_ffs(mask)-1)
@@ -656,7 +656,7 @@ template <class T> struct vector
     void growbuf(int sz)
     {
         int olen = alen;
-        if(!alen) alen = octa::max(int(MINSIZE), sz);
+        if(!alen) alen = ostd::max(int(MINSIZE), sz);
         else while(alen < sz) alen += alen/2;
         if(alen <= olen) return;
         uchar *newbuf = new uchar[alen*sizeof(T)];
