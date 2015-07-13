@@ -3,18 +3,18 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_RANGE_HH
-#define OCTA_RANGE_HH
+#ifndef OSTD_RANGE_HH
+#define OSTD_RANGE_HH
 
 #include <stddef.h>
 #include <string.h>
 
-#include "octa/new.hh"
-#include "octa/types.hh"
-#include "octa/utility.hh"
-#include "octa/type_traits.hh"
+#include "ostd/new.hh"
+#include "ostd/types.hh"
+#include "ostd/utility.hh"
+#include "ostd/type_traits.hh"
 
-namespace octa {
+namespace ostd {
 
 struct InputRangeTag {};
 struct OutputRangeTag {};
@@ -25,7 +25,7 @@ struct FiniteRandomAccessRangeTag: RandomAccessRangeTag {};
 
 template<typename T> struct RangeHalf;
 
-#define OCTA_RANGE_TRAIT(Name) \
+#define OSTD_RANGE_TRAIT(Name) \
 namespace detail { \
     template<typename T> \
     struct Range##Name##Test { \
@@ -43,13 +43,13 @@ namespace detail { \
 template<typename T> \
 using Range##Name = typename detail::Range##Name##Base<T>::Type;
 
-OCTA_RANGE_TRAIT(Category)
-OCTA_RANGE_TRAIT(Size)
-OCTA_RANGE_TRAIT(Value)
-OCTA_RANGE_TRAIT(Reference)
-OCTA_RANGE_TRAIT(Difference)
+OSTD_RANGE_TRAIT(Category)
+OSTD_RANGE_TRAIT(Size)
+OSTD_RANGE_TRAIT(Value)
+OSTD_RANGE_TRAIT(Reference)
+OSTD_RANGE_TRAIT(Difference)
 
-#undef OCTA_RANGE_TRAIT
+#undef OSTD_RANGE_TRAIT
 
 namespace detail {
     template<typename T>
@@ -1182,6 +1182,6 @@ AppenderRange<T> appender(T &&v) {
 // range of
 template<typename T> using RangeOf = decltype(iter(declval<T>()));
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

@@ -3,17 +3,17 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_STRING_HH
-#define OCTA_STRING_HH
+#ifndef OSTD_STRING_HH
+#define OSTD_STRING_HH
 
 #include <stdio.h>
 #include <stddef.h>
 
-#include "octa/utility.hh"
-#include "octa/range.hh"
-#include "octa/vector.hh"
+#include "ostd/utility.hh"
+#include "ostd/range.hh"
+#include "ostd/vector.hh"
 
-namespace octa {
+namespace ostd {
 static constexpr Size npos = -1;
 
 template<typename T, typename A = Allocator<T>> class StringBase;
@@ -142,14 +142,43 @@ private:
 
 template<typename T, typename A>
 class StringBase {
-    Vector<T, A> p_buf;
+    using StrPair = detail::CompressedPair<AllocatorPointer<A>, A>;
 
-    void terminate() {
-        if (p_buf.empty() || (p_buf.back() != '\0')) p_buf.push('\0');
+    ostd::Size p_len, p_cap;
+    StrPair p_buf;
+
+    template<typename R>
+    void ctor_from_range(R &range, EnableIf<
+        IsFiniteRandomAccessRange<R>::value &&
+        IsSame<T, RemoveCv<RangeValue<R>>>::value, bool
+    > = true) {
+        if (range.empty()) return;
+        RangeSize<R> l = range.size();
+        reserve(l);
+        p_len = l;
+        range.copy(p_buf.first(), l);
+        p_buf.first()[l] = '\0';
+    }
+
+    template<typename R>
+    void ctor_from_range(R &range, EnableIf<
+        !IsFiniteRandomAccessRange<R>::value ||
+        !IsSame<T, RemoveCv<RangeValue<R>>>::value, bool
+    > = true) {
+        if (range.empty()) return;
+        Size i = 0;
+        for (; !range.empty(); range.pop_front()) {
+            reserve(i + 1);
+            allocator_construct(p_buf.second(), &p_buf.first()[i],
+                range.front());
+            ++i;
+            p_len = i;
+        }
+        p_buf.first()[p_len] = '\0';
     }
 
 public:
-    using Size = octa::Size;
+    using Size = ostd::Size;
     using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
@@ -160,70 +189,168 @@ public:
     using ConstRange = StringRangeBase<const T>;
     using Allocator = A;
 
-    StringBase(const A &a = A()): p_buf(1, '\0', a) {}
+    StringBase(const A &a = A()): p_len(0), p_cap(0),
+        p_buf((Pointer)&p_len, a) {}
 
-    StringBase(Size n, const T &val = T(), const A &al = A()):
-        p_buf(n + 1, val, al) {}
+    explicit StringBase(Size n, T val = T(), const A &al = A()):
+    StringBase(al) {
+        if (!n) return;
+        p_buf.first() = allocator_allocate(p_buf.second(), n + 1);
+        p_len = p_cap = n;
+        Pointer cur = p_buf.first(), last = p_buf.first() + n;
+        while (cur != last) *cur++ = val;
+        *cur = '\0';
+    }
 
-    StringBase(const StringBase &s): p_buf(s.p_buf) {}
-    StringBase(const StringBase &s, const A &a):
-        p_buf(s.p_buf, a) {}
-    StringBase(StringBase &&s): p_buf(move(s.p_buf)) {}
-    StringBase(StringBase &&s, const A &a):
-        p_buf(move(s.p_buf), a) {}
+    StringBase(const StringBase &s): p_len(0), p_cap(0),
+    p_buf((Pointer)&p_len, allocator_container_copy(s.p_buf.second())) {
+        if (!s.p_len) return;
+        reserve(s.p_len);
+        p_len = s.p_len;
+        memcpy(p_buf.first(), s.p_buf.first(), (p_len + 1) * sizeof(T));
+    }
+    StringBase(const StringBase &s, const A &a): p_len(0), p_cap(0),
+    p_buf((Pointer)&p_len, a) {
+        if (!s.p_len) return;
+        reserve(s.p_len);
+        p_len = s.p_len;
+        memcpy(p_buf.first(), s.p_buf.first(), (p_len + 1) * sizeof(T));
+    }
+    StringBase(StringBase &&s): p_len(s.p_len), p_cap(s.p_cap),
+    p_buf(s.p_buf.first(), move(s.p_buf.second())) {
+        s.p_len = s.p_cap = 0;
+        s.p_buf.first() = (Pointer)&s.p_len;
+    }
+    StringBase(StringBase &&s, const A &a): p_len(0), p_cap(0),
+    p_buf((Pointer)&p_len, a) {
+        if (!s.p_len) return;
+        if (a != s.p_buf.second()) {
+            reserve(s.p_cap);
+            p_len = s.p_len;
+            memcpy(p_buf.first(), s.p_buf.first(), (p_len + 1) * sizeof(T));
+            return;
+        }
+        p_buf.first() = s.p_buf.first();
+        p_len = s.p_len;
+        p_cap = s.p_cap;
+        s.p_len = s.p_cap = 0;
+        s.p_buf.first() = &s.p_cap;
+    }
 
     StringBase(const StringBase &s, Size pos, Size len = npos,
-    const A &a = A()):
-        p_buf(s.p_buf.iter().slice(pos,
-            (len == npos) ? s.p_buf.size() : (pos + len)), a) {
-        terminate();
+    const A &a = A()): StringBase(a) {
+        Size end = (len == npos) ? s.size() : (pos + len);
+        Size nch = (end - pos);
+        reserve(nch);
+        memcpy(p_buf.first(), s.p_buf.first() + pos, nch);
+        p_len += nch;
+        p_buf.first()[p_len] = '\0';
     }
 
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
-    StringBase(const Value *v, const A &a = A()):
-        p_buf(ConstRange(v, strlen(v) + 1), a) {}
+    StringBase(const Value *v, const A &a = A()): StringBase(a) {
+        Size len = strlen(v);
+        if (!len) return;
+        reserve(len);
+        memcpy(p_buf.first(), v, len + 1);
+        p_len = len;
+    }
 
-    StringBase(const Value *v, Size n, const A &a = A()):
-        p_buf(ConstRange(v, n), a) {}
+    StringBase(const Value *v, Size n, const A &a = A()): StringBase(a) {
+        if (!n) return;
+        reserve(n);
+        memcpy(p_buf.first(), v, n);
+        p_buf.first()[n] = '\0';
+    }
 
     template<typename R, typename = EnableIf<
         IsInputRange<R>::value &&
         IsConvertible<RangeReference<R>, Value>::value
-    >> StringBase(R range, const A &a = A()): p_buf(range, a) {
-        terminate();
+    >> StringBase(R range, const A &a = A()): StringBase(a) {
+        ctor_from_range(range);
     }
 
-    void clear() { p_buf.clear(); }
+    void clear() {
+        p_len = 0;
+        *p_buf.first() = '\0';
+    }
 
     StringBase &operator=(const StringBase &v) {
-        p_buf.operator=(v);
+        if (this == &v) return *this;
+        clear();
+        if (AllocatorPropagateOnContainerCopyAssignment<A>::value) {
+            if ((p_buf.second() != v.p_buf.second()) && p_cap) {
+                allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
+                p_cap = 0;
+                p_buf.first() = &p_len;
+            }
+            p_buf.second() = v.p_buf.second();
+        }
+        reserve(v.p_cap);
+        p_len = v.p_len;
+        if (p_len) {
+            memcpy(p_buf.first(), v.p_buf.first(), p_len);
+            p_buf.first()[p_len] = '\0';
+        } else p_buf.first() = &p_len;
         return *this;
     }
     StringBase &operator=(StringBase &&v) {
-        p_buf.operator=(move(v));
+        clear();
+        if (p_cap) allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
+        if (AllocatorPropagateOnContainerMoveAssignment<A>::value)
+            p_buf.second() = v.p_buf.second();
+        p_len = v.p_len;
+        p_cap = v.p_cap;
+        p_buf.~StrPair();
+        new (&p_buf) StrPair(v.disown(), move(v.p_buf.second()));
+        if (!p_cap) p_buf.first() = &p_len;
         return *this;
     }
     StringBase &operator=(const Value *v) {
-        p_buf = ConstRange(v, strlen(v) + 1);
+        Size len = strlen(v);
+        reserve(len);
+        if (len) memcpy(p_buf.first(), v, len);
+        p_buf.first()[len] = '\0';
         return *this;
     }
     template<typename R, typename = EnableIf<
         IsInputRange<R>::value &&
         IsConvertible<RangeReference<R>, Value>::value
     >> StringBase &operator=(const R &r) {
-        p_buf = r;
-        terminate();
+        clear();
+        ctor_from_range(r);
         return *this;
     }
 
     void resize(Size n, T v = T()) {
-        p_buf.pop();
-        p_buf.resize(n, v);
-        terminate();
+        if (!n) {
+            clear();
+            return;
+        }
+        Size l = p_len;
+        reserve(n);
+        p_len = n;
+        for (Size i = l; i < p_len; ++i) {
+            p_buf.first()[i] = T(v);
+        }
+        p_buf.first()[l] = '\0';
     }
 
     void reserve(Size n) {
-        p_buf.reserve(n + 1);
+        if (n <= p_cap) return;
+        Size oc = p_cap;
+        if (!oc) {
+            p_cap = max(n, Size(8));
+        } else {
+            while (p_cap < n) p_cap *= 2;
+        }
+        Pointer tmp = allocator_allocate(p_buf.second(), p_cap + 1);
+        if (oc > 0) {
+            memcpy(tmp, p_buf.first(), (p_len + 1) * sizeof(T));
+            allocator_deallocate(p_buf.second(), p_buf.first(), oc + 1);
+        }
+        tmp[p_len] = '\0';
+        p_buf.first() = tmp;
     }
 
     T &operator[](Size i) { return p_buf[i]; }
@@ -238,15 +365,15 @@ public:
     T &back() { return p_buf[size() - 1]; }
     const T &back() const { return p_buf[size() - 1]; }
 
-    Value *data() { return p_buf.data(); }
-    const Value *data() const { return p_buf.data(); }
+    Value *data() { return p_buf.first(); }
+    const Value *data() const { return p_buf.first(); }
 
     Size size() const {
-        return p_buf.size() - 1;
+        return p_len;
     }
 
     Size capacity() const {
-        return p_buf.capacity() - 1;
+        return p_cap;
     }
 
     Size length() const {
@@ -257,43 +384,60 @@ public:
     bool empty() const { return (size() == 0); }
 
     void push(T v) {
-        p_buf.back() = v;
-        p_buf.push('\0');
+        reserve(p_len + 1);
+        p_buf.first()[p_len++] = v;
+        p_buf.first()[p_len] = '\0';
     }
 
     StringBase &append(const StringBase &s) {
-        p_buf.pop();
-        p_buf.insert_range(p_buf.size(), s.p_buf.iter());
+        reserve(p_len + s.p_len);
+        if (!s.p_len) return *this;
+        memcpy(p_buf.first() + p_len, s.p_buf.first(), s.p_len);
+        p_len += s.p_len;
+        p_buf.first()[p_len] = '\0';
         return *this;
     }
 
     StringBase &append(const StringBase &s, Size idx, Size len) {
-        p_buf.pop();
-        p_buf.insert_range(p_buf.size(), Range(&s[idx],
-            (len == npos) ? (s.size() - idx) : len));
-        terminate();
+        if (!s.p_len) return;
+        Size end = (len == npos) ? s.size() : (idx + len);
+        Size nch = (end - idx);
+        if (!nch) return;
+        reserve(p_len + nch);
+        memcpy(p_buf.first() + p_len, s.p_buf.first() + idx, nch);
+        p_len += nch;
+        p_buf.first()[p_len] = '\0';
         return *this;
     }
 
     StringBase &append(const Value *s) {
-        p_buf.pop();
-        p_buf.insert_range(p_buf.size(), ConstRange(s,
-            strlen(s) + 1));
+        Size len = strlen(s);
+        reserve(p_len + len);
+        if (!len) return *this;
+        memcpy(p_buf.first() + p_len, s, len);
+        p_len += len;
+        p_buf.first()[p_len] = '\0';
         return *this;
     }
 
     StringBase &append(Size n, T c) {
-        p_buf.pop();
-        for (Size i = 0; i < n; ++i) p_buf.push(c);
-        p_buf.push('\0');
+        if (!n) return;
+        reserve(p_len + n);
+        for (Size i = 0; i < n; ++n) p_buf.first()[p_len + i] = c;
+        p_len += n;
+        p_buf.first()[p_len] = '\0';
         return *this;
     }
 
     template<typename R>
     StringBase &append_range(R range) {
-        p_buf.pop();
-        p_buf.insert_range(p_buf.size(), range);
-        terminate();
+        Size nadd = 0;
+        for (; !range.empty(); range.pop_front()) {
+            reserve(p_len + nadd + 1);
+            p_buf.first()[p_len + nadd++] = range.front(); 
+        }
+        p_len += nadd;
+        p_buf.first()[p_len] = '\0';
         return *this;
     }
 
@@ -304,36 +448,40 @@ public:
         return append(s);
     }
     StringBase &operator+=(T c) {
-        p_buf.pop();
-        p_buf.push(c);
-        p_buf.push('\0');
+        reserve(p_len + 1);
+        p_buf.first()[p_len++] = c;
+        p_buf.first()[p_len] = '\0';
         return *this;
     }
 
     int compare(const StringBase &s) const {
-        return strcmp(p_buf.data(), s.data());
+        return strcmp(p_buf.first(), s.data());
     }
 
     int compare(const Value *p) const {
-        return strcmp(p_buf.data(), p);
+        return strcmp(p_buf.first(), p);
     }
 
     Range iter() {
-        return Range(p_buf.data(), size());
+        return Range(p_buf.first(), size());
     }
     ConstRange iter() const {
-        return ConstRange(p_buf.data(), size());
+        return ConstRange(p_buf.first(), size());
     }
     ConstRange citer() const {
-        return ConstRange(p_buf.data(), size());
+        return ConstRange(p_buf.dfirst(), size());
     }
 
     Range iter_cap() {
-        return Range(p_buf.data(), capacity());
+        return Range(p_buf.first(), capacity());
     }
 
     void swap(StringBase &v) {
-        p_buf.swap(v.p_buf);
+        detail::swap_adl(p_len, v.p_len);
+        detail::swap_adl(p_cap, v.p_cap);
+        detail::swap_adl(p_buf.first(), v.p_buf.first());
+        if (AllocatorPropagateOnContainerSwap<A>::value)
+            detail::swap_adl(p_buf.second(), v.p_buf.second());
     }
 
     Size to_hash() const {
@@ -341,7 +489,7 @@ public:
     }
 
     A get_allocator() const {
-        return p_buf.get_allocator();
+        return p_buf.second();
     }
 };
 
@@ -435,11 +583,11 @@ inline bool operator>=(const char *lhs, const StringBase<T, A> &rhs) {
     return !(lhs < rhs);
 }
 
-template<typename T, typename F, typename S = const char *,
-         typename A = typename String::Allocator>
-AnyString<A> concat(const T &v, const S &sep, F func) {
-    AnyString<A> ret;
-    auto range = octa::iter(v);
+template<typename A, typename T, typename F, typename S = const char *>
+AnyString<A> concat(AllocatorArg, const A &alloc, const T &v, const S &sep,
+                    F func) {
+    AnyString<A> ret(alloc);
+    auto range = ostd::iter(v);
     if (range.empty()) return ret;
     for (;;) {
         ret += func(range.front());
@@ -450,11 +598,11 @@ AnyString<A> concat(const T &v, const S &sep, F func) {
     return ret;
 }
 
-template<typename T, typename S = const char *,
-         typename A = typename String::Allocator>
-AnyString<A> concat(const T &v, const S &sep = " ") {
-    AnyString<A> ret;
-    auto range = octa::iter(v);
+template<typename A, typename T, typename S = const char *>
+AnyString<A> concat(AllocatorArg, const A &alloc, const T &v,
+                    const S &sep = " ") {
+    AnyString<A> ret(alloc);
+    auto range = ostd::iter(v);
     if (range.empty()) return ret;
     for (;;) {
         ret += range.front();
@@ -465,16 +613,36 @@ AnyString<A> concat(const T &v, const S &sep = " ") {
     return ret;
 }
 
-template<typename T, typename F, typename S = const char *,
-         typename A = typename String::Allocator>
-AnyString<A> concat(std::initializer_list<T> v, const S &sep, F func) {
-    return concat(octa::iter(v), sep, func);
+template<typename T, typename F, typename S = const char *>
+String concat(const T &v, const S &sep, F func) {
+    return concat(allocator_arg, typename String::Allocator(), v, sep, func);
 }
 
-template<typename T, typename S = const char *,
-         typename A = typename String::Allocator>
-AnyString<A> concat(std::initializer_list<T> v, const S &sep = " ") {
-    return concat(octa::iter(v), sep);
+template<typename T, typename S = const char *>
+String concat(const T &v, const S &sep = " ") {
+    return concat(allocator_arg, typename String::Allocator(), v, sep);
+}
+
+template<typename A, typename T, typename F, typename S = const char *>
+AnyString<A> concat(AllocatorArg, const A &alloc,
+                    std::initializer_list<T> v, const S &sep, F func) {
+    return concat(allocator_arg, alloc, ostd::iter(v), sep, func);
+}
+
+template<typename A, typename T, typename S = const char *>
+AnyString<A> concat(AllocatorArg, const A &alloc,
+                    std::initializer_list<T> v, const S &sep = " ") {
+    return concat(allocator_arg, alloc, ostd::iter(v), sep);
+}
+
+template<typename T, typename F, typename S = const char *>
+String concat(std::initializer_list<T> v, const S &sep, F func) {
+    return concat(ostd::iter(v), sep, func);
+}
+
+template<typename T, typename S = const char *>
+String concat(std::initializer_list<T> v, const S &sep = " ") {
+    return concat(ostd::iter(v), sep);
 }
 
 namespace detail {
@@ -488,7 +656,7 @@ namespace detail {
     using ToStringTest = decltype(test_tostring<T>(0));
 
     template<typename T>
-    True test_iterable(decltype(octa::iter(declval<T>())) *);
+    True test_iterable(decltype(ostd::iter(declval<T>())) *);
     template<typename> static False test_iterable(...);
 
     template<typename T>
@@ -505,9 +673,9 @@ struct ToString<T, EnableIf<detail::IterableTest<T>::value>> {
 
     String operator()(const T &v) const {
         String ret("{");
-        ret += concat(octa::iter(v), ", ", ToString<
+        ret += concat(ostd::iter(v), ", ", ToString<
             RemoveConst<RemoveReference<
-                RangeReference<decltype(octa::iter(v))>
+                RangeReference<decltype(ostd::iter(v))>
             >>
         >());
         ret += "}";
@@ -527,20 +695,19 @@ struct ToString<T, EnableIf<detail::ToStringTest<T>::value>> {
 
 namespace detail {
     template<typename T>
-    void str_printf(Vector<char> *s, const char *fmt, T v) {
+    void str_printf(String &s, const char *fmt, T v) {
         char buf[256];
         int n = snprintf(buf, sizeof(buf), fmt, v);
-        s->clear();
-        s->reserve(n + 1);
+        s.clear();
+        s.reserve(n);
         if (n >= (int)sizeof(buf))
-            snprintf(s->data(), n + 1, fmt, v);
+            snprintf(s.data(), n + 1, fmt, v);
         else if (n > 0)
-            memcpy(s->data(), buf, n + 1);
+            memcpy(s.data(), buf, n + 1);
         else {
-            n = 0;
-            *(s->data()) = '\0';
+            s.clear();
         }
-        *((Size *)s) = n + 1;
+        *((Size *)&s) = n;
     }
 }
 
@@ -562,39 +729,39 @@ template<> struct ToString<char> {
     }
 };
 
-#define OCTA_TOSTR_NUM(T, fmt) \
+#define OSTD_TOSTR_NUM(T, fmt) \
 template<> struct ToString<T> { \
     using Argument = T; \
     using Result = String; \
     String operator()(T v) { \
         String ret; \
-        detail::str_printf((Vector<char> *)&ret, fmt, v); \
+        detail::str_printf(ret, fmt, v); \
         return ret; \
     } \
 };
 
-OCTA_TOSTR_NUM(sbyte, "%d")
-OCTA_TOSTR_NUM(int, "%d")
-OCTA_TOSTR_NUM(int &, "%d")
-OCTA_TOSTR_NUM(long, "%ld")
-OCTA_TOSTR_NUM(float, "%f")
-OCTA_TOSTR_NUM(double, "%f")
+OSTD_TOSTR_NUM(sbyte, "%d")
+OSTD_TOSTR_NUM(int, "%d")
+OSTD_TOSTR_NUM(int &, "%d")
+OSTD_TOSTR_NUM(long, "%ld")
+OSTD_TOSTR_NUM(float, "%f")
+OSTD_TOSTR_NUM(double, "%f")
 
-OCTA_TOSTR_NUM(byte, "%u")
-OCTA_TOSTR_NUM(uint, "%u")
-OCTA_TOSTR_NUM(ulong, "%lu")
-OCTA_TOSTR_NUM(llong, "%lld")
-OCTA_TOSTR_NUM(ullong, "%llu")
-OCTA_TOSTR_NUM(ldouble, "%Lf")
+OSTD_TOSTR_NUM(byte, "%u")
+OSTD_TOSTR_NUM(uint, "%u")
+OSTD_TOSTR_NUM(ulong, "%lu")
+OSTD_TOSTR_NUM(llong, "%lld")
+OSTD_TOSTR_NUM(ullong, "%llu")
+OSTD_TOSTR_NUM(ldouble, "%Lf")
 
-#undef OCTA_TOSTR_NUM
+#undef OSTD_TOSTR_NUM
 
 template<typename T> struct ToString<T *> {
     using Argument = T *;
     using Result = String;
     String operator()(Argument v) {
         String ret;
-        detail::str_printf((Vector<char> *)&ret, "%p", v);
+        detail::str_printf(ret, "%p", v);
         return ret;
     }
 };
@@ -654,6 +821,6 @@ String to_string(std::initializer_list<T> init) {
     return to_string(iter(init));
 }
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

@@ -3,14 +3,14 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_TYPE_TRAITS_HH
-#define OCTA_TYPE_TRAITS_HH
+#ifndef OSTD_TYPE_TRAITS_HH
+#define OSTD_TYPE_TRAITS_HH
 
 #include <stddef.h>
 
-#include "octa/types.hh"
+#include "ostd/types.hh"
 
-namespace octa {
+namespace ostd {
 /* forward declarations */
 
 namespace detail {
@@ -403,16 +403,16 @@ struct HasVirtualDestructor: IntegralConstant<bool,
 /* is constructible */
 
 namespace detail {
-#define OCTA_MOVE(v) static_cast<RemoveReference<decltype(v)> &&>(v)
+#define OSTD_MOVE(v) static_cast<RemoveReference<decltype(v)> &&>(v)
 
     template<typename, typename T> struct Select2nd { using Type = T; };
     struct Any { Any(...); };
 
     template<typename T, typename ...A> typename Select2nd<
-        decltype(OCTA_MOVE(T(declval_in<A>()...))), True
+        decltype(OSTD_MOVE(T(declval_in<A>()...))), True
     >::Type is_ctible_test(T &&, A &&...);
 
-#undef OCTA_MOVE
+#undef OSTD_MOVE
 
     template<typename ...A> False is_ctible_test(Any, A &&...);
 
@@ -1069,35 +1069,35 @@ using Conditional = typename detail::ConditionalBase<_cond, T, U>::Type;
 /* result of call at compile time */
 
 namespace detail {
-#define OCTA_FWD(T, _v) static_cast<T &&>(_v)
+#define OSTD_FWD(T, _v) static_cast<T &&>(_v)
     template<typename F, typename ...A>
     inline auto rof_invoke(F &&f, A &&...args) ->
-      decltype(OCTA_FWD(F, f)(OCTA_FWD(A, args)...)) {
-        return OCTA_FWD(F, f)(OCTA_FWD(A, args)...);
+      decltype(OSTD_FWD(F, f)(OSTD_FWD(A, args)...)) {
+        return OSTD_FWD(F, f)(OSTD_FWD(A, args)...);
     }
     template<typename B, typename T, typename D>
     inline auto rof_invoke(T B::*pmd, D &&ref) ->
-      decltype(OCTA_FWD(D, ref).*pmd) {
-        return OCTA_FWD(D, ref).*pmd;
+      decltype(OSTD_FWD(D, ref).*pmd) {
+        return OSTD_FWD(D, ref).*pmd;
     }
     template<typename PMD, typename P>
     inline auto rof_invoke(PMD &&pmd, P &&ptr) ->
-      decltype((*OCTA_FWD(P, ptr)).*OCTA_FWD(PMD, pmd)) {
-        return (*OCTA_FWD(P, ptr)).*OCTA_FWD(PMD, pmd);
+      decltype((*OSTD_FWD(P, ptr)).*OSTD_FWD(PMD, pmd)) {
+        return (*OSTD_FWD(P, ptr)).*OSTD_FWD(PMD, pmd);
     }
     template<typename B, typename T, typename D, typename ...A>
     inline auto rof_invoke(T B::*pmf, D &&ref, A &&...args) ->
-      decltype((OCTA_FWD(D, ref).*pmf)(OCTA_FWD(A, args)...)) {
-        return (OCTA_FWD(D, ref).*pmf)(OCTA_FWD(A, args)...);
+      decltype((OSTD_FWD(D, ref).*pmf)(OSTD_FWD(A, args)...)) {
+        return (OSTD_FWD(D, ref).*pmf)(OSTD_FWD(A, args)...);
     }
     template<typename PMF, typename P, typename ...A>
     inline auto rof_invoke(PMF &&pmf, P &&ptr, A &&...args) ->
-      decltype(((*OCTA_FWD(P, ptr)).*OCTA_FWD(PMF, pmf))
-          (OCTA_FWD(A, args)...)) {
-        return ((*OCTA_FWD(P, ptr)).*OCTA_FWD(PMF, pmf))
-          (OCTA_FWD(A, args)...);
+      decltype(((*OSTD_FWD(P, ptr)).*OSTD_FWD(PMF, pmf))
+          (OSTD_FWD(A, args)...)) {
+        return ((*OSTD_FWD(P, ptr)).*OSTD_FWD(PMF, pmf))
+          (OSTD_FWD(A, args)...);
     }
-#undef OCTA_FWD
+#undef OSTD_FWD
 
     template<typename, typename = void>
     struct ResultOfCore {};
@@ -1235,6 +1235,6 @@ namespace detail {
 template<typename T>
 using UnderlyingType = typename detail::UnderlyingTypeBase<T>::Type;
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

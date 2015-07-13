@@ -3,22 +3,22 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_STREAM_HH
-#define OCTA_STREAM_HH
+#ifndef OSTD_STREAM_HH
+#define OSTD_STREAM_HH
 
 #include <sys/types.h>
 
-#include "octa/platform.hh"
-#include "octa/types.hh"
-#include "octa/range.hh"
-#include "octa/type_traits.hh"
-#include "octa/string.hh"
-#include "octa/utility.hh"
-#include "octa/format.hh"
+#include "ostd/platform.hh"
+#include "ostd/types.hh"
+#include "ostd/range.hh"
+#include "ostd/type_traits.hh"
+#include "ostd/string.hh"
+#include "ostd/utility.hh"
+#include "ostd/format.hh"
 
-namespace octa {
+namespace ostd {
 
-#ifndef OCTA_PLATFORM_WIN32
+#ifndef OSTD_PLATFORM_WIN32
 using StreamOffset = off_t;
 #else
 using StreamOffset = __int64;

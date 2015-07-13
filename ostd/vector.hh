@@ -3,26 +3,26 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_VECTOR_HH
-#define OCTA_VECTOR_HH
+#ifndef OSTD_VECTOR_HH
+#define OSTD_VECTOR_HH
 
 #include <string.h>
 #include <stddef.h>
 
-#include "octa/type_traits.hh"
-#include "octa/utility.hh"
-#include "octa/range.hh"
-#include "octa/algorithm.hh"
-#include "octa/initializer_list.hh"
-#include "octa/memory.hh"
+#include "ostd/type_traits.hh"
+#include "ostd/utility.hh"
+#include "ostd/range.hh"
+#include "ostd/algorithm.hh"
+#include "ostd/initializer_list.hh"
+#include "ostd/memory.hh"
 
-namespace octa {
+namespace ostd {
 
 template<typename T, typename A = Allocator<T>>
 class Vector {
     using VecPair = detail::CompressedPair<AllocatorPointer<A>, A>;
 
-    octa::Size p_len, p_cap;
+    ostd::Size p_len, p_cap;
     VecPair p_buf;
 
     void insert_base(Size idx, Size n) {
@@ -74,7 +74,7 @@ class Vector {
     }
 
 public:
-    using Size = octa::Size;
+    using Size = ostd::Size;
     using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
@@ -89,6 +89,7 @@ public:
 
     explicit Vector(Size n, const T &val = T(),
     const A &al = A()): Vector(al) {
+        if (!n) return;
         p_buf.first() = allocator_allocate(p_buf.second(), n);
         p_len = p_cap = n;
         Pointer cur = p_buf.first(), last = p_buf.first() + n;
@@ -115,7 +116,7 @@ public:
         v.p_len = v.p_cap = 0;
     }
 
-    Vector(Vector &&v, const A &a): p_buf(nullptr, a) {
+    Vector(Vector &&v, const A &a): p_len(0), p_cap(0), p_buf(nullptr, a) {
         if (a != v.p_buf.second()) {
             reserve(v.p_cap);
             p_len = v.p_len;
@@ -176,7 +177,7 @@ public:
         if (this == &v) return *this;
         clear();
         if (AllocatorPropagateOnContainerCopyAssignment<A>::value) {
-            if (p_buf.second() != v.p_buf.second()) {
+            if (p_buf.second() != v.p_buf.second() && p_cap) {
                 allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
                 p_cap = 0;
             }
@@ -190,7 +191,8 @@ public:
 
     Vector &operator=(Vector &&v) {
         clear();
-        allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
+        if (p_buf.first())
+            allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
         if (AllocatorPropagateOnContainerMoveAssignment<A>::value)
             p_buf.second() = v.p_buf.second();
         p_len = v.p_len;
@@ -228,6 +230,10 @@ public:
     }
 
     void resize(Size n, const T &v = T()) {
+        if (!n) {
+            clear();
+            return;
+        }
         Size l = p_len;
         reserve(n);
         p_len = n;
@@ -376,7 +382,7 @@ public:
     }
 
     Range insert(Size idx, InitializerList<T> il) {
-        return insert_range(idx, octa::iter(il));
+        return insert_range(idx, ostd::iter(il));
     }
 
     Range iter() {
@@ -406,6 +412,44 @@ public:
     }
 };
 
-} /* namespace octa */
+template<typename T, typename A>
+inline bool operator==(const Vector<T, A> &x, const Vector<T, A> &y) {
+    return equal(x.iter(), y.iter());
+}
+
+template<typename T, typename A>
+inline bool operator!=(const Vector<T, A> &x, const Vector<T, A> &y) {
+    return !(x == y);
+}
+
+template<typename T, typename A>
+inline bool operator<(const Vector<T, A> &x, const Vector<T, A> &y) {
+    using Range = typename Vector<T, A>::Range;
+    Range range1 = x.iter(), range2 = y.iter();
+    while (!range1.empty() && !range2.empty()) {
+        if (range1.front() < range2.front()) return true;
+        if (range2.front() < range1.front()) return false;
+        range1.pop_front();
+        range2.pop_front();
+    }
+    return (range1.empty() && !range2.empty());
+}
+
+template<typename T, typename A>
+inline bool operator>(const Vector<T, A> &x, const Vector<T, A> &y) {
+    return (y < x);
+}
+
+template<typename T, typename A>
+inline bool operator<=(const Vector<T, A> &x, const Vector<T, A> &y) {
+    return !(y < x);
+}
+
+template<typename T, typename A>
+inline bool operator>=(const Vector<T, A> &x, const Vector<T, A> &y) {
+    return !(x < y);
+}
+
+} /* namespace ostd */
 
 #endif

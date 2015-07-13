@@ -3,17 +3,17 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_IO_HH
-#define OCTA_IO_HH
+#ifndef OSTD_IO_HH
+#define OSTD_IO_HH
 
 #include <stdio.h>
 
-#include "octa/platform.hh"
-#include "octa/string.hh"
-#include "octa/stream.hh"
-#include "octa/format.hh"
+#include "ostd/platform.hh"
+#include "ostd/string.hh"
+#include "ostd/stream.hh"
+#include "ostd/format.hh"
 
-namespace octa {
+namespace ostd {
 
 enum class StreamMode {
     read, write, append,
@@ -87,7 +87,7 @@ struct FileStream: Stream {
     }
 
     bool seek(StreamOffset pos, StreamSeek whence = StreamSeek::set) {
-#ifndef OCTA_PLATFORM_WIN32
+#ifndef OSTD_PLATFORM_WIN32
         return fseeko(p_f, pos, int(whence)) >= 0;
 #else
         return _fseeki64(p_f, pos, int(whence)) >= 0;
@@ -95,7 +95,7 @@ struct FileStream: Stream {
     }
 
     StreamOffset tell() const {
-#ifndef OCTA_PLATFORM_WIN32
+#ifndef OSTD_PLATFORM_WIN32
         return ftello(p_f);
 #else
         return _ftelli64(p_f);
@@ -125,8 +125,8 @@ struct FileStream: Stream {
     }
 
     void swap(FileStream &s) {
-        octa::swap(p_f, s.p_f);
-        octa::swap(p_owned, s.p_owned);
+        ostd::swap(p_f, s.p_f);
+        ostd::swap(p_owned, s.p_owned);
     }
 
     FILE *get_file() { return p_f; }
@@ -153,7 +153,7 @@ inline void write(const AnyString<A> &s) {
 
 template<typename T>
 inline void write(const T &v) {
-    write(octa::to_string(v));
+    write(ostd::to_string(v));
 }
 
 template<typename T, typename ...A>
@@ -175,7 +175,7 @@ inline void writeln(const AnyString<A> &s) {
 
 template<typename T>
 inline void writeln(const T &v) {
-    writeln(octa::to_string(v));
+    writeln(ostd::to_string(v));
 }
 
 template<typename T, typename ...A>
@@ -231,6 +231,6 @@ inline void writefln(const AnyString<AL> &fmt,
     putc('\n', ::stdout);
 }
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

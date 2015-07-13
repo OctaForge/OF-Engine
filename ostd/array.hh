@@ -3,21 +3,21 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_ARRAY_HH
-#define OCTA_ARRAY_HH
+#ifndef OSTD_ARRAY_HH
+#define OSTD_ARRAY_HH
 
 #include <stddef.h>
 
-#include "octa/algorithm.hh"
-#include "octa/range.hh"
-#include "octa/string.hh"
-#include "octa/internal/tuple.hh"
+#include "ostd/algorithm.hh"
+#include "ostd/range.hh"
+#include "ostd/string.hh"
+#include "ostd/internal/tuple.hh"
 
-namespace octa {
+namespace ostd {
 
 template<typename T, Size N>
 struct Array {
-    using Size = octa::Size;
+    using Size = ostd::Size;
     using Difference = Ptrdiff;
     using Value = T;
     using Reference = T &;
@@ -70,7 +70,7 @@ struct Array {
     }
 
     void swap(Array &v) {
-        octa::swap_ranges(iter(), v.iter());
+        ostd::swap_ranges(iter(), v.iter());
     }
 
     T p_buf[(N > 0) ? N : 1];
@@ -129,6 +129,6 @@ inline bool operator>=(const Array<T, N> &x, const Array<T, N> &y) {
     return !(x < y);
 }
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

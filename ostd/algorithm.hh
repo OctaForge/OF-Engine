@@ -3,17 +3,17 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_ALGORITHM_HH
-#define OCTA_ALGORITHM_HH
+#ifndef OSTD_ALGORITHM_HH
+#define OSTD_ALGORITHM_HH
 
 #include <math.h>
 
-#include "octa/functional.hh"
-#include "octa/range.hh"
-#include "octa/utility.hh"
-#include "octa/initializer_list.hh"
+#include "ostd/functional.hh"
+#include "ostd/range.hh"
+#include "ostd/utility.hh"
+#include "ostd/initializer_list.hh"
 
-namespace octa {
+namespace ostd {
 
 /* partitioning */
 
@@ -153,7 +153,7 @@ template<typename R>
 inline R min_element(R range) {
     R r = range;
     for (; !range.empty(); range.pop_front())
-        if (octa::min(r.front(), range.front()) == range.front())
+        if (ostd::min(r.front(), range.front()) == range.front())
             r = range;
     return r;
 }
@@ -161,7 +161,7 @@ template<typename R, typename C>
 inline R min_element(R range, C compare) {
     R r = range;
     for (; !range.empty(); range.pop_front())
-        if (octa::min(r.front(), range.front(), compare) == range.front())
+        if (ostd::min(r.front(), range.front(), compare) == range.front())
             r = range;
     return r;
 }
@@ -170,7 +170,7 @@ template<typename R>
 inline R max_element(R range) {
     R r = range;
     for (; !range.empty(); range.pop_front())
-        if (octa::max(r.front(), range.front()) == range.front())
+        if (ostd::max(r.front(), range.front()) == range.front())
             r = range;
     return r;
 }
@@ -178,40 +178,40 @@ template<typename R, typename C>
 inline R max_element(R range, C compare) {
     R r = range;
     for (; !range.empty(); range.pop_front())
-        if (octa::max(r.front(), range.front(), compare) == range.front())
+        if (ostd::max(r.front(), range.front(), compare) == range.front())
             r = range;
     return r;
 }
 
 template<typename T>
 inline T min(std::initializer_list<T> il) {
-    return octa::min_element(octa::iter(il)).front();
+    return ostd::min_element(ostd::iter(il)).front();
 }
 template<typename T, typename C>
 inline T min(std::initializer_list<T> il, C compare) {
-    return octa::min_element(octa::iter(il), compare).front();
+    return ostd::min_element(ostd::iter(il), compare).front();
 }
 
 template<typename T>
 inline T max(std::initializer_list<T> il) {
-    return octa::max_element(octa::iter(il)).front();
+    return ostd::max_element(ostd::iter(il)).front();
 }
 
 template<typename T, typename C>
 inline T max(std::initializer_list<T> il, C compare) {
-    return octa::max_element(octa::iter(il), compare).front();
+    return ostd::max_element(ostd::iter(il), compare).front();
 }
 
 /* clamp */
 
 template<typename T, typename U>
 inline T clamp(const T &v, const U &lo, const U &hi) {
-    return octa::max(T(lo), octa::min(v, T(hi)));
+    return ostd::max(T(lo), ostd::min(v, T(hi)));
 }
 
 template<typename T, typename U, typename C>
 inline T clamp(const T &v, const U &lo, const U &hi, C compare) {
-    return octa::max(T(lo), octa::min(v, T(hi), compare), compare);
+    return ostd::max(T(lo), ostd::min(v, T(hi), compare), compare);
 }
 
 /* lexicographical compare */
@@ -396,7 +396,7 @@ Pair<R1, R2> swap_ranges(R1 range1, R2 range2) {
         range1.pop_front();
         range2.pop_front();
     }
-    return octa::make_pair(range1, range2);
+    return ostd::make_pair(range1, range2);
 }
 
 template<typename R, typename T>
@@ -590,6 +590,6 @@ FilterRange<R, detail::FilterPred<R, P>> filter(R range, P pred) {
     return FilterRange<R, P>(range, pred);
 }
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif

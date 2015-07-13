@@ -3,18 +3,18 @@
  * This file is part of OctaSTD. See COPYING.md for futher information.
  */
 
-#ifndef OCTA_MAP_HH
-#define OCTA_MAP_HH
+#ifndef OSTD_MAP_HH
+#define OSTD_MAP_HH
 
-#include "octa/types.hh"
-#include "octa/utility.hh"
-#include "octa/memory.hh"
-#include "octa/functional.hh"
-#include "octa/initializer_list.hh"
+#include "ostd/types.hh"
+#include "ostd/utility.hh"
+#include "ostd/memory.hh"
+#include "ostd/functional.hh"
+#include "ostd/initializer_list.hh"
 
-#include "octa/internal/hashtable.hh"
+#include "ostd/internal/hashtable.hh"
 
-namespace octa {
+namespace ostd {
 
 namespace detail {
     template<typename K, typename T, typename A> struct MapBase {
@@ -51,7 +51,7 @@ namespace detail {
     public:
         using Key = K;
         using Mapped = T;
-        using Size = octa::Size;
+        using Size = ostd::Size;
         using Difference = Ptrdiff;
         using Hasher = H;
         using KeyEqual = C;
@@ -177,6 +177,6 @@ template<
     typename A = Allocator<Pair<const K, T>>
 > using Multimap = detail::MapImpl<K, T, H, C, A, true>;
 
-} /* namespace octa */
+} /* namespace ostd */
 
 #endif
