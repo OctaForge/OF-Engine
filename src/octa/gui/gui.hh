@@ -6,4 +6,6 @@
 #ifndef OCTA_GUI_GUI_HH
 #define OCTA_GUI_GUI_HH
 
+#include <octa/gui/core.hh>
+
 #endif

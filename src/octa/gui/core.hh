@@ -7,6 +7,7 @@
 #define OCTA_GUI_CORE_HH
 
 #include <ostd/types.hh>
+#include <ostd/vector.hh>
 
 namespace octa { namespace gui {
 
@@ -44,6 +45,21 @@ class Widget;
 class Projection {
     Widget *p_obj;
     float p_px, p_py, p_pw, p_ph;
+
+public:
+    Projection(Widget *obj): p_obj(obj),
+        p_px(0), p_py(0), p_pw(0), p_ph(0) {}
+
+    void calc(float *pw = nullptr, float *ph = nullptr);
+
+    void adjust_layout();
+
+    void projection();
+
+    void calc_scissor(bool clip, float &x1, float &y1, float &x2, float &y2);
+
+    void draw(float sx, float sy);
+    void draw();
 };
 
 class Color {
@@ -64,9 +80,31 @@ public:
     Color(ostd::byte red, ostd::byte green, ostd::byte blue,
           ostd::byte alpha = 0xFF):
         p_r(red), p_g(green), p_b(blue), p_a(alpha) {}
+
+    ostd::byte red  () const { return p_r; }
+    ostd::byte green() const { return p_g; }
+    ostd::byte blue () const { return p_b; }
+    ostd::byte alpha() const { return p_a; }
+
+    ostd::byte set_red(ostd::byte nr);
+    ostd::byte set_green(ostd::byte nr);
+    ostd::byte set_blue(ostd::byte nr);
+    ostd::byte set_alpha(ostd::byte nr);
 };
 
 class Widget {
+    Widget *p_parent;
+    Vector<Widget *> p_children;
+
+    float p_x, p_y, p_w, p_h;
+
+    ostd::byte p_adjust;
+
+    bool p_floating, p_visible, p_disabled;
+
+public:
+    Widget(): p_parent(nullptr), p_x(0), p_y(0), p_w(0), p_h(0),
+        p_adjust(ALIGN_CENTER) {}
 };
 
 } } /* namespace octa::gui */
