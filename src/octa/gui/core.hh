@@ -71,7 +71,7 @@ public:
     Color(ostd::Uint32 color): p_r((color >> 16) & 0xFF),
                                p_g((color >>  8) & 0xFF),
                                p_b( color        & 0xFF),
-                               p_a(!(coloc >> 24) ? 0xFF : (color >> 24)) {}
+                               p_a(!(color >> 24) ? 0xFF : (color >> 24)) {}
 
     Color(ostd::Uint32 color, ostd::byte alpha):
         p_r((color >> 16) & 0xFF), p_g((color >>  8) & 0xFF),
@@ -86,15 +86,15 @@ public:
     ostd::byte blue () const { return p_b; }
     ostd::byte alpha() const { return p_a; }
 
-    ostd::byte set_red(ostd::byte nr);
-    ostd::byte set_green(ostd::byte nr);
-    ostd::byte set_blue(ostd::byte nr);
-    ostd::byte set_alpha(ostd::byte nr);
+    ostd::byte red(ostd::byte nr);
+    ostd::byte green(ostd::byte nr);
+    ostd::byte blue(ostd::byte nr);
+    ostd::byte alpha(ostd::byte nr);
 };
 
 class Widget {
     Widget *p_parent;
-    Vector<Widget *> p_children;
+    ostd::Vector<Widget *> p_children;
 
     float p_x, p_y, p_w, p_h;
 
@@ -105,6 +105,12 @@ class Widget {
 public:
     Widget(): p_parent(nullptr), p_x(0), p_y(0), p_w(0), p_h(0),
         p_adjust(ALIGN_CENTER) {}
+
+    float x() const { return p_x; }
+    float y() const { return p_y; }
+
+    float width() const { return p_w; }
+    float height() const { return p_h; }
 };
 
 } } /* namespace octa::gui */
