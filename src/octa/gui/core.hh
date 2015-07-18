@@ -100,10 +100,10 @@ class Color {
     ostd::byte p_r, p_g, p_b, p_a;
 
 public:
-    ostd::Signal<const Color> red_changed   = this;
-    ostd::Signal<const Color> green_changed = this;
-    ostd::Signal<const Color> blue_changed  = this;
-    ostd::Signal<const Color> alpha_changed = this;
+    ostd::Signal<Color> red_changed   = this;
+    ostd::Signal<Color> green_changed = this;
+    ostd::Signal<Color> blue_changed  = this;
+    ostd::Signal<Color> alpha_changed = this;
 
     Color(): p_r(0xFF), p_g(0xFF), p_b(0xFF), p_a(0xFF) {}
 
@@ -169,6 +169,10 @@ protected:
 public:
     static int type;
 
+    ostd::Signal<Widget> floating_changed = this;
+    ostd::Signal<Widget> visible_changed = this;
+    ostd::Signal<Widget> disabled_changed = this;
+
     Widget() {}
 
     virtual int get_type() {
@@ -198,19 +202,57 @@ public:
     float x() const { return p_x; }
     float y() const { return p_y; }
 
+    void set_x(float v) { p_x = v; }
+    void set_y(float v) { p_y = v; }
+
     float width() const { return p_w; }
     float height() const { return p_h; }
 
-    template<typename F>
-    void loop_children(F fun) {
-        for (auto o: p_children.iter())
-            fun(o);
+    bool floating() const { return p_floating; }
+    bool visible()  const { return p_visible; }
+    bool disabled() const { return p_disabled; }
+
+    void set_floating(bool v) {
+        p_floating = v;
+        floating_changed.emit();
+    }
+
+    void set_visible(bool v) {
+        p_visible = v;
+        visible_changed.emit();
+    }
+
+    void set_disabled(bool v) {
+        p_disabled = v;
+        disabled_changed.emit();
     }
 
     template<typename F>
-    void loop_children_rev(F fun) {
+    bool loop_children(F fun) {
+        for (auto o: p_children.iter())
+            if (fun(o)) return true;
+        return false;
+    }
+
+    template<typename F>
+    bool loop_children(F fun) const {
+        for (auto o: p_children.iter())
+            if (fun(o)) return true;
+        return false;
+    }
+
+    template<typename F>
+    bool loop_children_r(F fun) {
         for (auto o: p_children.iter().reverse())
-            fun(o);
+            if (fun(o)) return true;
+        return false;
+    }
+
+    template<typename F>
+    bool loop_children_r(F fun) const {
+        for (auto o: p_children.iter().reverse())
+            if (fun(o)) return true;
+        return false;
     }
 
     virtual void layout();
@@ -218,6 +260,7 @@ public:
     void adjust_children(float px, float py, float pw, float ph) {
         loop_children([px, py, pw, ph](Widget *o) {
             o->adjust_layout(px, py, pw, ph);
+            return false;
         });
     }
 
@@ -226,6 +269,8 @@ public:
     }
 
     virtual void adjust_layout(float px, float py, float pw, float ph);
+
+    virtual bool grabs_input() const { return true; }
 };
 
 /* named widget */
@@ -287,6 +332,8 @@ public:
         p_above_hud = v;
         above_hud_changed.emit();
     }
+
+    bool grabs_input() const { return input_grab(); }
 };
 
 /* overlay */
@@ -295,6 +342,8 @@ class Overlay: public Window {
 public:
     static int type;
     using Window::Window;
+
+    bool grabs_input() const { return false; }
 };
 
 /* root */
@@ -313,10 +362,26 @@ public:
         this->p_root = this;
     }
 
-    int get_pixel_w(bool force_aspect = false);
-    int get_pixel_h();
+    int get_pixel_w(bool force_aspect = false) const;
+    int get_pixel_h() const;
 
-    float get_aspect(bool force = false);
+    float get_aspect(bool force = false) const;
+
+    bool grabs_input() const {
+        return loop_children_r([](const Widget *o) {
+            return o->grabs_input();
+        });
+    }
+
+    void adjust_children();
+
+    void layout_dim() {
+        p_x = p_y = 0;
+        p_w = get_aspect(true);
+        p_h = 1.0f;
+    }
+
+    void layout();
 };
 
 } } /* namespace octa::gui */

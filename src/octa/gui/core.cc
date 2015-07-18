@@ -94,10 +94,11 @@ int Widget::type = generate_widget_type();
 void Widget::layout() {
     p_w = p_h = 0;
     loop_children([this](Widget *o) {
-        if (!o->p_floating) o->p_x = o->p_y = 0;
+        if (!o->floating()) o->p_x = o->p_y = 0;
         o->layout();
         this->p_w = ostd::max(this->p_w, o->p_x + o->p_w);
         this->p_h = ostd::max(this->p_h, o->p_y + o->p_h);
+        return false;
     });
 }
 
@@ -144,20 +145,45 @@ int Overlay::type = generate_widget_type();
 
 int Root::type = generate_widget_type();
 
-int Root::get_pixel_w(bool force_aspect) {
+int Root::get_pixel_w(bool force_aspect) const {
     if (!force_aspect) return hudw;
     float asp = get_aspect();
     if (asp) return int(ceil(hudw * asp));
     return hudw;
 }
 
-int Root::get_pixel_h() {
+int Root::get_pixel_h() const {
     return hudh;
 }
 
-float Root::get_aspect(bool force) {
+float Root::get_aspect(bool force) const {
     if (forceaspect) return forceaspect;
     return float(get_pixel_w()) / get_pixel_h();
+}
+
+void Root::adjust_children() {
+    loop_children([this](Widget *o) {
+        Projection *p = o->projection();
+        this->set_projection(p);
+        p->adjust_layout();
+        this->set_projection(nullptr);
+        return false;
+    });
+}
+
+void Root::layout() {
+    layout_dim();
+    loop_children([this](Widget *o) {
+        if (!o->floating()) {
+            o->set_x(0);
+            o->set_y(0);
+        }
+        this->set_projection(o->projection());
+        o->layout();
+        this->set_projection(nullptr);
+        return false;
+    });
+    adjust_children();
 }
 
 } } /* namespace octa::gui */
