@@ -84,8 +84,9 @@ public:
 
     void projection();
 
-    void calc_scissor(bool clip, float x1, float y1, float x2, float y2,
-                      int &sx1, int &sy1, int &sx2, int &sy2);
+    void calc_scissor(float x1, float y1, float x2, float y2,
+                      int &sx1, int &sy1, int &sx2, int &sy2,
+                      bool clip = false);
 
     void draw(float sx, float sy);
     void draw();

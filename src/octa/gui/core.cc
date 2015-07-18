@@ -19,8 +19,7 @@ int generate_widget_type() {
 
 void ClipArea::scissor(Root *r) {
     int sx1, sy1, sx2, sy2;
-    r->projection()->calc_scissor(false, p_x1, p_y1, p_x2, p_y2, sx1, sy1,
-        sx2, sy2);
+    r->projection()->calc_scissor(p_x1, p_y1, p_x2, p_y2, sx1, sy1, sx2, sy2);
     glScissor(sx1, sy1, sx2 - sx1, sy2 - sy1);
 }
 
@@ -35,9 +34,9 @@ void Projection::adjust_layout() {
 void Projection::projection() {
 }
 
-void Projection::calc_scissor(bool clip, float x1, float y1, float x2,
-                              float y2,  int &sx1, int &sy1, int &sx2,
-                              int &sy2) {
+void Projection::calc_scissor(float x1, float y1, float x2, float y2,
+                              int &sx1, int &sy1, int &sx2, int &sy2,
+                              bool clip) {
     Root *r = p_obj->root();
     vec2 sscale(p_ss_x, p_ss_y);
     vec2 soffset(p_so_x, p_so_y);
