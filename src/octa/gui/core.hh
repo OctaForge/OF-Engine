@@ -7,6 +7,7 @@
 #define OCTA_GUI_CORE_HH
 
 #include <ostd/types.hh>
+#include <ostd/event.hh>
 #include <ostd/vector.hh>
 
 namespace octa { namespace gui {
@@ -66,6 +67,11 @@ class Color {
     ostd::byte p_r, p_g, p_b, p_a;
 
 public:
+    ostd::Signal<const Color, ostd::byte> red_changed   = this;
+    ostd::Signal<const Color, ostd::byte> green_changed = this;
+    ostd::Signal<const Color, ostd::byte> blue_changed  = this;
+    ostd::Signal<const Color, ostd::byte> alpha_changed = this;
+
     Color(): p_r(0xFF), p_g(0xFF), p_b(0xFF), p_a(0xFF) {}
 
     Color(ostd::Uint32 color): p_r((color >> 16) & 0xFF),
@@ -86,10 +92,14 @@ public:
     ostd::byte blue () const { return p_b; }
     ostd::byte alpha() const { return p_a; }
 
-    ostd::byte red(ostd::byte nr);
-    ostd::byte green(ostd::byte nr);
-    ostd::byte blue(ostd::byte nr);
-    ostd::byte alpha(ostd::byte nr);
+    ostd::byte set_red(ostd::byte v);
+    ostd::byte set_green(ostd::byte v);
+    ostd::byte set_blue(ostd::byte v);
+    ostd::byte set_alpha(ostd::byte v);
+
+    void init() const;
+    void attrib() const;
+    void def() const;
 };
 
 class Widget {
