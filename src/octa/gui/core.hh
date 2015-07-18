@@ -67,12 +67,13 @@ public:
                (y >= p_y2) || ((x + w) <= p_x1) || ((y + h) <= p_y1);
     }
 
-    void scissor();
+    void scissor(Root *r);
 };
 
 class Projection {
     const Widget *p_obj;
     float p_px = 0, p_py = 0, p_pw = 0, p_ph = 0;
+    float p_ss_x = 0, p_ss_y = 0, p_so_x = 0, p_so_y = 0;
 
 public:
     Projection(const Widget *obj): p_obj(obj) {}
@@ -83,7 +84,8 @@ public:
 
     void projection();
 
-    void calc_scissor(bool clip, float &x1, float &y1, float &x2, float &y2);
+    void calc_scissor(bool clip, float x1, float y1, float x2, float y2,
+                      int &sx1, int &sy1, int &sx2, int &sy2);
 
     void draw(float sx, float sy);
     void draw();

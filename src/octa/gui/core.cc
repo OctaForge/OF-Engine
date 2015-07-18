@@ -17,7 +17,11 @@ int generate_widget_type() {
 
 /* cliparea */
 
-void ClipArea::scissor() {
+void ClipArea::scissor(Root *r) {
+    int sx1, sy1, sx2, sy2;
+    r->projection()->calc_scissor(false, p_x1, p_y1, p_x2, p_y2, sx1, sy1,
+        sx2, sy2);
+    glScissor(sx1, sy1, sx2 - sx1, sy2 - sy1);
 }
 
 /* projection */
@@ -31,7 +35,25 @@ void Projection::adjust_layout() {
 void Projection::projection() {
 }
 
-void Projection::calc_scissor(bool, float &, float &, float &, float &) {
+void Projection::calc_scissor(bool clip, float x1, float y1, float x2,
+                              float y2,  int &sx1, int &sy1, int &sx2,
+                              int &sy2) {
+    Root *r = p_obj->root();
+    vec2 sscale(p_ss_x, p_ss_y);
+    vec2 soffset(p_so_x, p_so_y);
+    vec2 s1 = vec2(x1, y2).mul(sscale).add(soffset),
+         s2 = vec2(x2, y1).mul(sscale).add(soffset);
+    int hudw = r->get_pixel_w(), hudh = r->get_pixel_h();
+    sx1 = int(floor(s1.x * hudw + 0.5f));
+    sy1 = int(floor(s1.y * hudh + 0.5f));
+    sx2 = int(floor(s2.x * hudw + 0.5f));
+    sy2 = int(floor(s2.y * hudh + 0.5f));
+    if (clip) {
+        sx1 = clamp(sx1, 0, hudw);
+        sy1 = clamp(sy1, 0, hudh);
+        sx2 = clamp(sx2, 0, hudw);
+        sy2 = clamp(sy2, 0, hudh);
+    }
 }
 
 void Projection::draw(float, float) {
