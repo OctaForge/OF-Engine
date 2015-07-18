@@ -72,4 +72,39 @@ void Color::def() const {
     gle::defcolor(4, GL_UNSIGNED_BYTE);
 }
 
+/* widget */
+
+void Widget::layout() {
+    p_w = p_h = 0;
+    loop_children([this](Widget *o) {
+        o->p_x = o->p_y = 0;
+        o->layout();
+        this->p_w = ostd::max(this->p_w, o->p_x + o->p_w);
+        this->p_h = ostd::max(this->p_h, o->p_y + o->p_h);
+    });
+}
+
+void Widget::adjust_layout(float px, float py, float pw, float ph) {
+    switch (p_adjust & ALIGN_HMASK) {
+    case ALIGN_LEFT   : p_x = px;                  break;
+    case ALIGN_HCENTER: p_x = px + (pw - p_w) / 2; break;
+    case ALIGN_RIGHT  : p_x = px +  pw - p_w;      break;
+    }
+
+    switch (p_adjust & ALIGN_VMASK) {
+    case ALIGN_BOTTOM : p_y = py;                  break;
+    case ALIGN_VCENTER: p_y = py + (ph - p_h) / 2; break;
+    case ALIGN_TOP    : p_y = py +  ph - p_h;      break;
+    }
+
+    if (p_adjust & CLAMP_MASK) {
+        if (p_adjust & CLAMP_LEFT  ) p_x = px;
+        if (p_adjust & CLAMP_RIGHT ) p_w = px + pw - p_x;
+        if (p_adjust & CLAMP_BOTTOM) p_y = py;
+        if (p_adjust & CLAMP_TOP   ) p_h = py + ph - p_y;
+    }
+
+    adjust_children();
+}
+
 } } /* namespace octa::gui */

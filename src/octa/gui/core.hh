@@ -9,6 +9,7 @@
 #include <ostd/types.hh>
 #include <ostd/event.hh>
 #include <ostd/vector.hh>
+#include <ostd/algorithm.hh>
 
 namespace octa { namespace gui {
 
@@ -121,6 +122,32 @@ public:
 
     float width() const { return p_w; }
     float height() const { return p_h; }
+
+    template<typename F>
+    void loop_children(F fun) {
+        for (auto o: p_children.iter())
+            fun(o);
+    }
+
+    template<typename F>
+    void loop_children_rev(F fun) {
+        for (auto o: p_children.iter().reverse())
+            fun(o);
+    }
+
+    virtual void layout();
+
+    void adjust_children(float px, float py, float pw, float ph) {
+        loop_children([px, py, pw, ph](Widget *o) {
+            o->adjust_layout(px, py, pw, ph);
+        });
+    }
+
+    virtual void adjust_children() {
+        adjust_children(0, 0, p_w, p_h);
+    }
+
+    virtual void adjust_layout(float px, float py, float pw, float ph);
 };
 
 } } /* namespace octa::gui */
