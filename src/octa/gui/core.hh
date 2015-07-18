@@ -9,9 +9,12 @@
 #include <ostd/types.hh>
 #include <ostd/event.hh>
 #include <ostd/vector.hh>
+#include <ostd/string.hh>
 #include <ostd/algorithm.hh>
 
 namespace octa { namespace gui {
+
+int generate_widget_type();
 
 enum {
     ALIGN_HMASK = 0x3,
@@ -90,10 +93,10 @@ class Color {
     ostd::byte p_r, p_g, p_b, p_a;
 
 public:
-    ostd::Signal<const Color, ostd::byte> red_changed   = this;
-    ostd::Signal<const Color, ostd::byte> green_changed = this;
-    ostd::Signal<const Color, ostd::byte> blue_changed  = this;
-    ostd::Signal<const Color, ostd::byte> alpha_changed = this;
+    ostd::Signal<const Color> red_changed   = this;
+    ostd::Signal<const Color> green_changed = this;
+    ostd::Signal<const Color> blue_changed  = this;
+    ostd::Signal<const Color> alpha_changed = this;
 
     Color(): p_r(0xFF), p_g(0xFF), p_b(0xFF), p_a(0xFF) {}
 
@@ -115,15 +118,32 @@ public:
     ostd::byte blue () const { return p_b; }
     ostd::byte alpha() const { return p_a; }
 
-    ostd::byte set_red(ostd::byte v);
-    ostd::byte set_green(ostd::byte v);
-    ostd::byte set_blue(ostd::byte v);
-    ostd::byte set_alpha(ostd::byte v);
+    void set_red(ostd::byte v) {
+        p_r = v;
+        red_changed.emit();
+    }
+
+    void set_green(ostd::byte v) {
+        p_g = v;
+        green_changed.emit();
+    }
+
+    void set_blue(ostd::byte v) {
+        p_b = v;
+        blue_changed.emit();
+    }
+
+    void set_alpha(ostd::byte v){
+        p_a = v;
+        blue_changed.emit();
+    }
 
     void init() const;
     void attrib() const;
     void def() const;
 };
+
+/* widget */
 
 class Widget {
     Widget *p_parent;
@@ -134,12 +154,6 @@ class Widget {
     ostd::byte p_adjust;
 
     bool p_floating, p_visible, p_disabled;
-
-protected:
-    static int generate_type() {
-        static int wtype = 0;
-        return wtype++;
-    }
 
 public:
     static int type;
@@ -184,7 +198,82 @@ public:
     virtual void adjust_layout(float px, float py, float pw, float ph);
 };
 
-int Widget::type = Widget::generate_type();
+/* named widget */
+
+class NamedWidget: public Widget {
+    ostd::String p_name;
+
+public:
+    static int type;
+
+    ostd::Signal<const NamedWidget> name_changed = this;
+
+    NamedWidget(ostd::String s): p_name(ostd::move(s)) {}
+
+    virtual int get_type() {
+        return Widget::type;
+    }
+
+    const ostd::String &name() const { return p_name; }
+
+    void set_name(ostd::String s) {
+        p_name = ostd::move(s);
+        name_changed.emit();
+    }
+};
+
+/* tag */
+
+class Tag: public NamedWidget {
+public:
+    static int type;
+    using NamedWidget::NamedWidget;
+};
+
+/* window */
+
+class Window: public NamedWidget {
+    bool p_input_grab, p_above_hud;
+
+public:
+    static int type;
+
+    ostd::Signal<const Window> input_grab_changed = this;
+    ostd::Signal<const Window> above_hud_changed  = this;
+
+    Window(ostd::String name, bool input_grab = true, bool above_hud = false):
+        NamedWidget(ostd::move(name)), p_input_grab(input_grab),
+        p_above_hud(above_hud) {}
+
+    bool input_grab() const { return p_input_grab; }
+    bool above_hud() const { return p_above_hud; }
+
+    void set_input_grab(bool v) {
+        p_input_grab = v;
+        input_grab_changed.emit();
+    }
+
+    void set_above_hud(bool v) {
+        p_above_hud = v;
+        above_hud_changed.emit();
+    }
+};
+
+/* overlay */
+
+class Overlay: public Window {
+public:
+    static int type;
+    using Window::Window;
+};
+
+/* root */
+
+class Root: public Widget {
+public:
+    static int type;
+    using Widget::Widget;
+};
 
 } } /* namespace octa::gui */
 

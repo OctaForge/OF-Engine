@@ -9,6 +9,11 @@
 
 namespace octa { namespace gui {
 
+int generate_widget_type() {
+    static int wtype = 0;
+    return wtype++;
+}
+
 /* cliparea */
 
 void ClipArea::scissor() {
@@ -37,34 +42,6 @@ void Projection::draw() {
 
 /* color */
 
-ostd::byte Color::set_red(ostd::byte v) {
-    auto old = p_r;
-    p_r = v;
-    red_changed.emit(old);
-    return old;
-}
-
-ostd::byte Color::set_green(ostd::byte v) {
-    auto old = p_g;
-    p_g = v;
-    green_changed.emit(old);
-    return old;
-}
-
-ostd::byte Color::set_blue(ostd::byte v) {
-    auto old = p_b;
-    p_b = v;
-    blue_changed.emit(old);
-    return old;
-}
-
-ostd::byte Color::set_alpha(ostd::byte v) {
-    auto old = p_a;
-    p_a = v;
-    blue_changed.emit(old);
-    return old;
-}
-
 void Color::init() const {
     gle::colorub(p_r, p_g, p_b, p_a);
 }
@@ -78,6 +55,8 @@ void Color::def() const {
 }
 
 /* widget */
+
+int Widget::type = generate_widget_type();
 
 void Widget::layout() {
     p_w = p_h = 0;
@@ -111,5 +90,25 @@ void Widget::adjust_layout(float px, float py, float pw, float ph) {
 
     adjust_children();
 }
+
+/* named widget */
+
+int NamedWidget::type = generate_widget_type();
+
+/* tag */
+
+int Tag::type = generate_widget_type();
+
+/* window */
+
+int Window::type = generate_widget_type();
+
+/* overlay */
+
+int Overlay::type = generate_widget_type();
+
+/* root */
+
+int Root::type = generate_widget_type();
 
 } } /* namespace octa::gui */
