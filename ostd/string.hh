@@ -303,7 +303,7 @@ public:
         p_cap = v.p_cap;
         p_buf.~StrPair();
         new (&p_buf) StrPair(v.disown(), move(v.p_buf.second()));
-        if (!p_cap) p_buf.first() = &p_len;
+        if (!p_cap) p_buf.first() = (Pointer)&p_len;
         return *this;
     }
     StringBase &operator=(const Value *v) {
@@ -382,6 +382,13 @@ public:
     }
 
     bool empty() const { return (size() == 0); }
+
+    Value *disown() {
+        Pointer r = p_buf.first();
+        p_buf.first() = nullptr;
+        p_len = p_cap = 0;
+        return (Value *)r;
+    }
 
     void push(T v) {
         reserve(p_len + 1);
