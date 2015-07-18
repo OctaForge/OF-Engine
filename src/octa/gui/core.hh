@@ -46,6 +46,7 @@ enum {
 };
 
 class Widget;
+class Root;
 
 class ClipArea {
     float p_x1, p_y1, p_x2, p_y2;
@@ -147,6 +148,8 @@ public:
 
 class Widget {
     Widget *p_parent;
+    mutable Root *p_root;
+
     ostd::Vector<Widget *> p_children;
 
     float p_x, p_y, p_w, p_h;
@@ -158,11 +161,22 @@ class Widget {
 public:
     static int type;
 
-    Widget(): p_parent(nullptr), p_x(0), p_y(0), p_w(0), p_h(0),
-        p_adjust(ALIGN_CENTER) {}
+    Widget(): p_parent(nullptr), p_root(nullptr),
+        p_x(0), p_y(0), p_w(0), p_h(0), p_adjust(ALIGN_CENTER) {}
 
     virtual int get_type() {
         return Widget::type;
+    }
+
+    Root *get_root() const {
+        if (p_root) return p_root;
+        Widget *p = p_parent;
+        if (p_parent) {
+            Root *r = p_parent->get_root();
+            p_root = r;
+            return r;
+        }
+        return nullptr;
     }
 
     float x() const { return p_x; }
