@@ -9,6 +9,11 @@
 
 namespace octa { namespace gui {
 
+/* cliparea */
+
+void ClipArea::scissor() {
+}
+
 /* projection */
 
 void Projection::calc(float *, float *) {

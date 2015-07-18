@@ -44,6 +44,28 @@ enum {
 
 class Widget;
 
+class ClipArea {
+    float p_x1, p_y1, p_x2, p_y2;
+
+public:
+    ClipArea(float x, float y, float w, float h):
+        p_x1(x), p_y1(y), p_x2(x + w), p_y2(y + h) {}
+
+    void intersect(const ClipArea &c) {
+        p_x1 = ostd::max(p_x1, c.p_x1);
+        p_y1 = ostd::max(p_y1, c.p_y1);
+        p_x2 = ostd::max(p_x1, ostd::min(p_x2, c.p_x2));
+        p_y2 = ostd::max(p_y1, ostd::min(p_y2, c.p_y2));
+    }
+
+    bool is_fully_clipped(float x, float y, float w, float h) const {
+        return (p_x1 == p_x2) || (p_y1 == p_y2) || (x >= p_x2) ||
+               (y >= p_y2) || ((x + w) <= p_x1) || ((y + h) <= p_y1);
+    }
+
+    void scissor();
+};
+
 class Projection {
     Widget *p_obj;
     float p_px, p_py, p_pw, p_ph;
@@ -113,9 +135,21 @@ class Widget {
 
     bool p_floating, p_visible, p_disabled;
 
+protected:
+    static int generate_type() {
+        static int wtype = 0;
+        return wtype++;
+    }
+
 public:
+    static int type;
+
     Widget(): p_parent(nullptr), p_x(0), p_y(0), p_w(0), p_h(0),
         p_adjust(ALIGN_CENTER) {}
+
+    virtual int get_type() {
+        return Widget::type;
+    }
 
     float x() const { return p_x; }
     float y() const { return p_y; }
@@ -149,6 +183,8 @@ public:
 
     virtual void adjust_layout(float px, float py, float pw, float ph);
 };
+
+int Widget::type = Widget::generate_type();
 
 } } /* namespace octa::gui */
 
