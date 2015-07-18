@@ -15,6 +15,24 @@ int generate_widget_type() {
     return wtype++;
 }
 
+int draw_changed = 0;
+
+void blend_change(int type, ostd::uint src, ostd::uint dst) {
+    static int blend_type = BLEND_ALPHA;
+    if (blend_type != type) {
+        blend_type = type;
+        glBlendFunc(src, dst);
+    }
+}
+
+void blend_reset() {
+    blend_change(BLEND_ALPHA, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void blend_mod() {
+    blend_change(BLEND_MOD, GL_ZERO, GL_SRC_COLOR);
+}
+
 /* cliparea */
 
 void ClipArea::scissor(Root *r) {
@@ -125,6 +143,54 @@ void Widget::adjust_layout(float px, float py, float pw, float ph) {
     adjust_children();
 }
 
+void Widget::end_draw_change(int change) {
+    end_draw();
+    draw_changed &= ~change;
+    if (draw_changed) {
+        if (draw_changed & CHANGE_SHADER) {
+            hudshader->set();
+        }
+        if (draw_changed & CHANGE_COLOR) {
+            gle::colorf(1.0f, 1.0f, 1.0f);
+        }
+        if (draw_changed & CHANGE_BLEND) {
+            blend_reset();
+        }
+    }
+}
+
+void Widget::change_draw(int change) {
+    Root *r = root();
+    if (!r->p_drawing) {
+        start_draw();
+        draw_changed = change;
+    } else if (r->p_drawing->get_type() != get_type()) {
+        r->p_drawing->end_draw_change(change);
+        start_draw();
+        draw_changed = change;
+    }
+    r->p_drawing = this;
+}
+
+void Widget::stop_draw() {
+    Root *r = root();
+    if (r->p_drawing) {
+        r->p_drawing->end_draw_change(0);
+        r->p_drawing = nullptr;
+    }
+}
+
+void Widget::draw(float sx, float sy) {
+    Root *r = root();
+    loop_children([this, r, sx, sy](Widget *o) {
+        if (!r->clip_is_fully_clipped(sx + o->p_x, sy + o->p_y,
+                                      o->p_w, o->p_h) && o->p_visible) {
+            o->draw(sx + o->p_x, sy + o->p_y);
+        }
+        return false;
+    });
+}
+
 /* named widget */
 
 int NamedWidget::type = generate_widget_type();
@@ -174,16 +240,50 @@ void Root::adjust_children() {
 void Root::layout() {
     layout_dim();
     loop_children([this](Widget *o) {
-        if (!o->floating()) {
-            o->set_x(0);
-            o->set_y(0);
-        }
+        if (!o->p_floating) o->p_x = o->p_y = 0;
         this->set_projection(o->projection());
         o->layout();
         this->set_projection(nullptr);
         return false;
     });
     adjust_children();
+}
+
+void Root::clip_push(float x, float y, float w, float h) {
+    if (p_clipstack.empty()) { glEnable(GL_SCISSOR_TEST); }
+    ClipArea &c = p_clipstack.emplace_back(x, y, w, h);
+    if (p_clipstack.size() >= 2) {
+        c.intersect(p_clipstack[p_clipstack.size() - 2]);
+    }
+    c.scissor(this);
+}
+
+void Root::clip_pop() {
+    p_clipstack.pop();
+    if (p_clipstack.empty()) {
+        glDisable(GL_SCISSOR_TEST);
+    } else {
+        p_clipstack.back().scissor(this);
+    }
+}
+
+bool Root::clip_is_fully_clipped(float x, float y, float w, float h) {
+    if (p_clipstack.empty()) return false;
+    return p_clipstack.back().is_fully_clipped(x, y, w, h);
+}
+
+void Root::clip_scissor() {
+    p_clipstack.back().scissor(this);
+}
+
+void Root::draw(float sx, float sy) {
+    loop_children([this, sx, sy](Widget *o) {
+        if (!this->clip_is_fully_clipped(sx + o->p_x, sy + o->p_y,
+                                         o->p_w, o->p_h) && o->p_visible) {
+            o->projection()->draw(sx + o->p_x, sy + o->p_y);
+        }
+        return false;
+    });
 }
 
 } } /* namespace octa::gui */

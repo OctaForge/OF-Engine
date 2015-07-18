@@ -45,6 +45,23 @@ enum {
     CLAMP_BOTTOM = 1 << 7
 };
 
+enum {
+    CHANGE_SHADER = 1 << 0,
+    CHANGE_COLOR  = 1 << 1,
+    CHANGE_BLEND  = 1 << 2
+};
+
+enum {
+    BLEND_ALPHA,
+    BLEND_MOD
+};
+
+extern int draw_changed;
+
+void blend_change(int type, ostd::uint src, ostd::uint dst);
+void blend_reset();
+void blend_mod();
+
 class Widget;
 class Root;
 
@@ -167,6 +184,8 @@ protected:
     bool p_floating = false, p_visible = true, p_disabled = false;
 
 public:
+    friend class Root;
+
     static int type;
 
     ostd::Signal<Widget> floating_changed = this;
@@ -271,6 +290,23 @@ public:
     virtual void adjust_layout(float px, float py, float pw, float ph);
 
     virtual bool grabs_input() const { return true; }
+
+    virtual void start_draw() {}
+    virtual void end_draw() {}
+
+    void end_draw_change(int change);
+    void change_draw(int change = 0);
+    void stop_draw();
+
+    virtual void draw(float sx, float sy);
+
+    void draw() {
+        draw(p_x, p_y);
+    }
+
+    virtual bool is_root() {
+        return false;
+    }
 };
 
 /* named widget */
@@ -350,12 +386,16 @@ public:
 
 class Root: public Widget {
     ostd::Vector<Window *> p_windows;
-    ostd::Vector<ClipArea *> p_clipstack;
+    ostd::Vector<ClipArea> p_clipstack;
+
+    Widget *p_drawing = nullptr;
 
     float p_curx = 0.499, p_cury = 0.499;
     bool p_has_cursor = false;
 
 public:
+    friend class Widget;
+
     static int type;
 
     Root(): Widget() {
@@ -382,6 +422,20 @@ public:
     }
 
     void layout();
+
+    void clip_push(float x, float y, float w, float h);
+
+    void clip_pop();
+
+    bool clip_is_fully_clipped(float x, float y, float w, float h);
+
+    void clip_scissor();
+
+    bool is_root() {
+        return true;
+    }
+
+    void draw(float sx, float sy);
 };
 
 } } /* namespace octa::gui */
