@@ -61,7 +61,7 @@ int Widget::type = generate_widget_type();
 void Widget::layout() {
     p_w = p_h = 0;
     loop_children([this](Widget *o) {
-        o->p_x = o->p_y = 0;
+        if (!o->p_floating) o->p_x = o->p_y = 0;
         o->layout();
         this->p_w = ostd::max(this->p_w, o->p_x + o->p_w);
         this->p_h = ostd::max(this->p_h, o->p_y + o->p_h);

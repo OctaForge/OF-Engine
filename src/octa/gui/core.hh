@@ -71,11 +71,11 @@ public:
 };
 
 class Projection {
-    Widget *p_obj;
+    const Widget *p_obj;
     float p_px, p_py, p_pw, p_ph;
 
 public:
-    Projection(Widget *obj): p_obj(obj),
+    Projection(const Widget *obj): p_obj(obj),
         p_px(0), p_py(0), p_pw(0), p_ph(0) {}
 
     void calc(float *pw = nullptr, float *ph = nullptr);
@@ -147,36 +147,47 @@ public:
 /* widget */
 
 class Widget {
-    Widget *p_parent;
-    mutable Root *p_root;
+protected:
+    Widget *p_parent = nullptr;
+    mutable Root *p_root = nullptr;
+    mutable Projection *p_proj = nullptr;
 
     ostd::Vector<Widget *> p_children;
 
-    float p_x, p_y, p_w, p_h;
+    float p_x = 0, p_y = 0, p_w = 0, p_h = 0;
 
-    ostd::byte p_adjust;
+    ostd::byte p_adjust = ALIGN_CENTER;
 
-    bool p_floating, p_visible, p_disabled;
+    bool p_floating = false, p_visible = true, p_disabled = false;
 
 public:
     static int type;
 
-    Widget(): p_parent(nullptr), p_root(nullptr),
-        p_x(0), p_y(0), p_w(0), p_h(0), p_adjust(ALIGN_CENTER) {}
+    Widget() {}
 
     virtual int get_type() {
         return Widget::type;
     }
 
-    Root *get_root() const {
+    Root *root() const {
         if (p_root) return p_root;
         Widget *p = p_parent;
         if (p_parent) {
-            Root *r = p_parent->get_root();
+            Root *r = p_parent->root();
             p_root = r;
             return r;
         }
         return nullptr;
+    }
+
+    Projection *projection(bool nonew = false) const {
+        if (p_proj || nonew || ((Widget *)p_root == this)) return p_proj;
+        p_proj = new Projection(this);
+        return p_proj;
+    }
+
+    void set_projection(Projection *proj) {
+        p_proj = proj;
     }
 
     float x() const { return p_x; }
@@ -284,9 +295,17 @@ public:
 /* root */
 
 class Root: public Widget {
+    ostd::Vector<Window *> p_windows;
+
+    float p_curx = 0.499, p_cury = 0.499;
+    bool p_has_cursor = false;
+
 public:
     static int type;
-    using Widget::Widget;
+
+    Root(): Widget() {
+        this->p_root = this;
+    }
 };
 
 } } /* namespace octa::gui */
