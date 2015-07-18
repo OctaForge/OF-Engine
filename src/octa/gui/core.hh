@@ -72,11 +72,10 @@ public:
 
 class Projection {
     const Widget *p_obj;
-    float p_px, p_py, p_pw, p_ph;
+    float p_px = 0, p_py = 0, p_pw = 0, p_ph = 0;
 
 public:
-    Projection(const Widget *obj): p_obj(obj),
-        p_px(0), p_py(0), p_pw(0), p_ph(0) {}
+    Projection(const Widget *obj): p_obj(obj) {}
 
     void calc(float *pw = nullptr, float *ph = nullptr);
 
@@ -171,7 +170,6 @@ public:
 
     Root *root() const {
         if (p_root) return p_root;
-        Widget *p = p_parent;
         if (p_parent) {
             Root *r = p_parent->root();
             p_root = r;
@@ -296,6 +294,7 @@ public:
 
 class Root: public Widget {
     ostd::Vector<Window *> p_windows;
+    ostd::Vector<ClipArea *> p_clipstack;
 
     float p_curx = 0.499, p_cury = 0.499;
     bool p_has_cursor = false;
@@ -306,6 +305,11 @@ public:
     Root(): Widget() {
         this->p_root = this;
     }
+
+    int get_pixel_w(bool force_aspect = false);
+    int get_pixel_h();
+
+    float get_aspect(bool force = false);
 };
 
 } } /* namespace octa::gui */

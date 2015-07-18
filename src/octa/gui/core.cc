@@ -6,6 +6,7 @@
 #include "octa/gui/core.hh"
 
 #include "cube.hh"
+#include "engine.hh"
 
 namespace octa { namespace gui {
 
@@ -110,5 +111,21 @@ int Overlay::type = generate_widget_type();
 /* root */
 
 int Root::type = generate_widget_type();
+
+int Root::get_pixel_w(bool force_aspect) {
+    if (!force_aspect) return hudw;
+    float asp = get_aspect();
+    if (asp) return int(ceil(hudw * asp));
+    return hudw;
+}
+
+int Root::get_pixel_h() {
+    return hudh;
+}
+
+float Root::get_aspect(bool force) {
+    if (forceaspect) return forceaspect;
+    return float(get_pixel_w()) / get_pixel_h();
+}
 
 } } /* namespace octa::gui */
