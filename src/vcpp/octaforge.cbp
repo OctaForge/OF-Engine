@@ -280,6 +280,7 @@
 		<Unit filename="..\ostd\ostd\algorithm.hh" />
 		<Unit filename="..\ostd\ostd\array.hh" />
 		<Unit filename="..\ostd\ostd\atomic.hh" />
+		<Unit filename="..\ostd\ostd\event.hh" />
 		<Unit filename="..\ostd\ostd\format.hh" />
 		<Unit filename="..\ostd\ostd\functional.hh" />
 		<Unit filename="..\ostd\ostd\initializer_list.hh" />
