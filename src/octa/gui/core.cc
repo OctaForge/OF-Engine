@@ -25,10 +25,21 @@ void ClipArea::scissor(Root *r) {
 
 /* projection */
 
-void Projection::calc(float *, float *) {
+void Projection::calc(float &pw, float &ph) {
+    Root *r = p_obj->root();
+    float aspect = r->get_aspect(true);
+    p_ph = ostd::max(ostd::max(p_obj->height(),
+        (p_obj->width() / aspect)), 1.0f);
+    p_pw = aspect * p_ph;
+    p_px = p_py = 0;
+    pw = p_pw;
+    ph = p_ph;
 }
 
 void Projection::adjust_layout() {
+    float pw, ph;
+    calc(pw, ph);
+    p_obj->adjust_layout(0, 0, pw, ph);
 }
 
 void Projection::projection() {

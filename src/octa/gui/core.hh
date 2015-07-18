@@ -71,14 +71,18 @@ public:
 };
 
 class Projection {
-    const Widget *p_obj;
+    Widget *p_obj;
     float p_px = 0, p_py = 0, p_pw = 0, p_ph = 0;
     float p_ss_x = 0, p_ss_y = 0, p_so_x = 0, p_so_y = 0;
 
 public:
-    Projection(const Widget *obj): p_obj(obj) {}
+    Projection(Widget *obj): p_obj(obj) {}
 
-    void calc(float *pw = nullptr, float *ph = nullptr);
+    void calc(float &pw, float &ph);
+    void calc() {
+        float pw, ph;
+        calc(pw, ph);
+    }
 
     void adjust_layout();
 
@@ -183,7 +187,7 @@ public:
 
     Projection *projection(bool nonew = false) const {
         if (p_proj || nonew || ((Widget *)p_root == this)) return p_proj;
-        p_proj = new Projection(this);
+        p_proj = new Projection((Widget *)this);
         return p_proj;
     }
 
