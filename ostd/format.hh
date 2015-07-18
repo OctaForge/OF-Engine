@@ -887,7 +887,7 @@ namespace detail {
                         return -1;
                 }
                 if (spec.arg_width()) {
-                    if (argpos <= (argprec + 1)) {
+                    if (argpos <= (Size(argprec) + 1)) {
                         assert(false && "argument width not given");
                         return -1;
                     }
