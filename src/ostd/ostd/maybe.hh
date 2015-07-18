@@ -116,7 +116,7 @@ public:
     constexpr explicit Maybe(InPlace, A &&...args): Base(in_place,
         forward<A>(args)...) {}
 
-    template<typename U, typename ...A, typename = typename EnableIf<
+    template<typename U, typename ...A, typename = EnableIf<
         IsConstructible<T, std::initializer_list<U> &, A...>::value>>
     constexpr explicit
     Maybe(InPlace, std::initializer_list<U> il, A &&...args):

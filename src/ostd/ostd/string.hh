@@ -583,6 +583,14 @@ inline bool operator>=(const char *lhs, const StringBase<T, A> &rhs) {
     return !(lhs < rhs);
 }
 
+/* string literals */
+
+inline namespace literals { inline namespace string_literals {
+    String operator "" _s(const char *str, Size len) {
+        return String(str, len);
+    }
+} }
+
 template<typename A, typename T, typename F, typename S = const char *>
 AnyString<A> concat(AllocatorArg, const A &alloc, const T &v, const S &sep,
                     F func) {
