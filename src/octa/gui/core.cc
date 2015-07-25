@@ -3,6 +3,8 @@
  * This file is part of OctaForge. See COPYING.md for futher information.
  */
 
+#include <ostd/tuple.hh>
+
 #include "octa/gui/core.hh"
 
 #include "cube.hh"
@@ -17,8 +19,9 @@ int generate_widget_type() {
 
 int draw_changed = 0;
 
+static int blend_type = BLEND_ALPHA;
+
 void blend_change(int type, ostd::uint src, ostd::uint dst) {
-    static int blend_type = BLEND_ALPHA;
     if (blend_type != type) {
         blend_type = type;
         glBlendFunc(src, dst);
@@ -61,6 +64,12 @@ void Projection::adjust_layout() {
 }
 
 void Projection::projection() {
+    hudmatrix.ortho(p_px, p_px + p_pw, p_py + p_ph, p_py, -1, 1);
+    resethudmatrix();
+    vec2 sscale = vec2(hudmatrix.a.x, hudmatrix.b.y).mul(0.5f);
+    vec2 soffset = vec2(hudmatrix.d.x, hudmatrix.d.y).mul(0.5f).add(0.5f);
+    p_ss_x = sscale.x, p_ss_y = sscale.y;
+    p_so_x = soffset.x, p_so_y = soffset.y;
 }
 
 void Projection::calc_scissor(float x1, float y1, float x2, float y2,
@@ -84,11 +93,33 @@ void Projection::calc_scissor(float x1, float y1, float x2, float y2,
     }
 }
 
-void Projection::draw(float, float) {
+void Projection::draw(float sx, float sy) {
+    Root *r = p_obj->root();
+    r->set_projection(this);
+    projection();
+    hudshader->set();
+
+    blend_type = BLEND_ALPHA;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    gle::colorf(1.0f, 1.0f, 1.0f);
+
+    draw_changed = 0;
+    r->p_drawing = nullptr;
+
+    p_obj->draw(sx, sy);
+    p_obj->stop_draw();
+
+    glDisable(GL_BLEND);
+    r->set_projection(nullptr);
 }
 
 void Projection::draw() {
     draw(p_obj->x(), p_obj->y());
+}
+
+float Projection::calc_above_hud() {
+    return 1 - (p_obj->y() * p_ss_y + p_so_y);
 }
 
 /* color */

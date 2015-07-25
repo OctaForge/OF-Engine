@@ -109,6 +109,8 @@ public:
 
     void draw(float sx, float sy);
     void draw();
+
+    float calc_above_hud();
 };
 
 class Color {
@@ -393,6 +395,7 @@ class Root: public Widget {
 
 public:
     friend class Widget;
+    friend class Projection;
 
     Root(): Widget() {
         this->p_root = this;
