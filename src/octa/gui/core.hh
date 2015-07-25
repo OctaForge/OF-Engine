@@ -14,6 +14,12 @@
 
 namespace octa { namespace gui {
 
+void draw_quad(float x, float y, float w, float h,
+               float tx = 0, float ty = 0, float tw = 1, float th = 1);
+
+void draw_quadtri(float x, float y, float w, float h,
+                  float tx = 0, float ty = 0, float tw = 1, float th = 1);
+
 enum {
     ALIGN_HMASK = 0x3,
     ALIGN_VMASK = 0xC,
@@ -41,6 +47,10 @@ enum {
     CLAMP_RIGHT  = 1 << 5,
     CLAMP_TOP    = 1 << 6,
     CLAMP_BOTTOM = 1 << 7
+};
+
+enum class Orientation {
+    horizontal, vertical
 };
 
 enum {
@@ -165,6 +175,9 @@ public:
     void init() const;
     void attrib() const;
     void def() const;
+
+    void get_final_rgba(const Widget *o, ostd::byte &r, ostd::byte &g,
+                        ostd::byte &b, ostd::byte &a);
 };
 
 /* widget */

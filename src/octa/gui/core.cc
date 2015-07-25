@@ -12,9 +12,20 @@
 
 namespace octa { namespace gui {
 
-int generate_widget_type() {
-    static int wtype = 0;
-    return wtype++;
+void draw_quad(float x, float y, float w, float h,
+               float tx, float ty, float tw, float th) {
+    gle::attribf(x,     y);     gle::attribf(tx,      ty);
+    gle::attribf(x + w, y);     gle::attribf(tx + tw, ty);
+    gle::attribf(x + w, y + h); gle::attribf(tx + tw, ty + th);
+    gle::attribf(x,     y + h); gle::attribf(tx,      ty + th);
+}
+
+void draw_quadtri(float x, float y, float w, float h,
+                  float tx, float ty, float tw, float th) {
+    gle::attribf(x,     y);     gle::attribf(tx,      ty);
+    gle::attribf(x + w, y);     gle::attribf(tx + tw, ty);
+    gle::attribf(x,     y + h); gle::attribf(tx,      ty + th);
+    gle::attribf(x + w, y + h); gle::attribf(tx + tw, ty + th);
 }
 
 int draw_changed = 0;
@@ -134,6 +145,17 @@ void Color::attrib() const {
 
 void Color::def() const {
     gle::defcolor(4, GL_UNSIGNED_BYTE);
+}
+
+void Color::get_final_rgba(const Widget *, ostd::byte &r, ostd::byte &g,
+                           ostd::byte &b, ostd::byte &a) {
+    /* check if disabled here and if yes, pass it through a callback
+     * for now we don't implement this, so we just return the vals
+     */
+    r = p_r;
+    g = p_g;
+    b = p_b;
+    a = p_a;
 }
 
 /* widget */
