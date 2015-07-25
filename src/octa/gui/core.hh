@@ -14,8 +14,6 @@
 
 namespace octa { namespace gui {
 
-int generate_widget_type();
-
 enum {
     ALIGN_HMASK = 0x3,
     ALIGN_VMASK = 0xC,
@@ -186,7 +184,10 @@ protected:
 public:
     friend class Root;
 
-    static int type;
+    struct TypeTag {
+        TypeTag() {}
+        ostd::Size get() const { return (ostd::Size)this; }
+    };
 
     ostd::Signal<Widget> floating_changed = this;
     ostd::Signal<Widget> visible_changed = this;
@@ -194,9 +195,7 @@ public:
 
     Widget() {}
 
-    virtual int get_type() {
-        return Widget::type;
-    }
+    virtual ostd::Size get_type();
 
     Root *root() const {
         if (p_root) return p_root;
@@ -315,15 +314,11 @@ class NamedWidget: public Widget {
     ostd::String p_name;
 
 public:
-    static int type;
-
     ostd::Signal<const NamedWidget> name_changed = this;
 
     NamedWidget(ostd::String s): p_name(ostd::move(s)) {}
 
-    virtual int get_type() {
-        return Widget::type;
-    }
+    virtual ostd::Size get_type();
 
     const ostd::String &name() const { return p_name; }
 
@@ -339,6 +334,8 @@ class Tag: public NamedWidget {
 public:
     static int type;
     using NamedWidget::NamedWidget;
+
+    virtual ostd::Size get_type();
 };
 
 /* window */
@@ -347,14 +344,14 @@ class Window: public NamedWidget {
     bool p_input_grab, p_above_hud;
 
 public:
-    static int type;
-
     ostd::Signal<const Window> input_grab_changed = this;
     ostd::Signal<const Window> above_hud_changed  = this;
 
     Window(ostd::String name, bool input_grab = true, bool above_hud = false):
         NamedWidget(ostd::move(name)), p_input_grab(input_grab),
         p_above_hud(above_hud) {}
+
+    virtual ostd::Size get_type();
 
     bool input_grab() const { return p_input_grab; }
     bool above_hud() const { return p_above_hud; }
@@ -376,8 +373,9 @@ public:
 
 class Overlay: public Window {
 public:
-    static int type;
     using Window::Window;
+
+    virtual ostd::Size get_type();
 
     bool grabs_input() const { return false; }
 };
@@ -396,11 +394,11 @@ class Root: public Widget {
 public:
     friend class Widget;
 
-    static int type;
-
     Root(): Widget() {
         this->p_root = this;
     }
+
+    virtual ostd::Size get_type();
 
     int get_pixel_w(bool force_aspect = false) const;
     int get_pixel_h() const;

@@ -107,7 +107,11 @@ void Color::def() const {
 
 /* widget */
 
-int Widget::type = generate_widget_type();
+static const Widget::TypeTag widget_type;
+
+ostd::Size Widget::get_type() {
+    return widget_type.get();
+}
 
 void Widget::layout() {
     p_w = p_h = 0;
@@ -193,23 +197,43 @@ void Widget::draw(float sx, float sy) {
 
 /* named widget */
 
-int NamedWidget::type = generate_widget_type();
+static const Widget::TypeTag named_widget_type;
+
+ostd::Size NamedWidget::get_type() {
+    return named_widget_type.get();
+}
 
 /* tag */
 
-int Tag::type = generate_widget_type();
+static const Widget::TypeTag tag_type;
+
+ostd::Size Tag::get_type() {
+    return tag_type.get();
+}
 
 /* window */
 
-int Window::type = generate_widget_type();
+static const Widget::TypeTag window_type;
+
+ostd::Size Window::get_type() {
+    return window_type.get();
+}
 
 /* overlay */
 
-int Overlay::type = generate_widget_type();
+static const Widget::TypeTag overlay_type;
+
+ostd::Size Overlay::get_type() {
+    return overlay_type.get();
+}
 
 /* root */
 
-int Root::type = generate_widget_type();
+static const Widget::TypeTag root_type;
+
+ostd::Size Root::get_type() {
+    return root_type.get();
+}
 
 int Root::get_pixel_w(bool force_aspect) const {
     if (!force_aspect) return hudw;
