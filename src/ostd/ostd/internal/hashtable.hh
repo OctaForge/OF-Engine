@@ -7,6 +7,7 @@
 #define OSTD_INTERNAL_HASHTABLE_HH
 
 #include <string.h>
+#include <math.h>
 
 #include "ostd/types.hh"
 #include "ostd/utility.hh"
@@ -19,6 +20,7 @@ namespace ostd {
 namespace detail {
     template<typename T>
     struct HashChain {
+        HashChain<T> *prev;
         HashChain<T> *next;
         T value;
     };
@@ -46,36 +48,19 @@ private:
     friend struct HashRange;
 
     using Chain = detail::HashChain<T>;
-
-    Chain **p_beg;
-    Chain **p_end;
     Chain *p_node;
-
-    void advance() {
-        while ((p_beg != p_end) && !p_beg[0])
-            ++p_beg;
-        if (p_beg != p_end) p_node = p_beg[0];
-    }
 public:
-    HashRange(): p_beg(nullptr), p_end(nullptr), p_node(nullptr) {}
-    HashRange(const HashRange &v): p_beg(v.p_beg), p_end(v.p_end),
-        p_node(v.p_node) {}
-    HashRange(Chain **beg, Chain **end): p_beg(beg), p_end(end), p_node() {
-        advance();
-    }
-    HashRange(Chain **beg, Chain **end, Chain *node): p_beg(beg), p_end(end),
-        p_node(node) {}
+    HashRange(): p_node(nullptr) {}
+    HashRange(const HashRange &v): p_node(v.p_node) {}
+    HashRange(Chain *node): p_node(node) {}
 
     template<typename U>
     HashRange(const HashRange<U> &v, EnableIf<
         IsSame<RemoveCv<T>, RemoveCv<U>>::value &&
         IsConvertible<U *, T *>::value, bool
-    > = true): p_beg((Chain **)v.p_beg), p_end((Chain **)v.p_end),
-        p_node((Chain *)v.p_node) {}
+    > = true): p_node((Chain *)v.p_node) {}
 
     HashRange &operator=(const HashRange &v) {
-        p_beg = v.p_beg;
-        p_end = v.p_end;
         p_node = v.p_node;
         return *this;
     }
@@ -85,9 +70,6 @@ public:
     bool pop_front() {
         if (!p_node) return false;
         p_node = p_node->next;
-        if (p_node) return true;
-        ++p_beg;
-        advance();
         return true;
     }
 
@@ -105,27 +87,28 @@ private:
     friend struct BucketRange;
 
     using Chain = detail::HashChain<T>;
-    Chain *p_node;
+    Chain *p_node, *p_end;
 public:
     BucketRange(): p_node(nullptr) {}
-    BucketRange(Chain *node): p_node(node) {}
-    BucketRange(const BucketRange &v): p_node(v.p_node) {}
+    BucketRange(Chain *node, Chain *end): p_node(node), p_end(end) {}
+    BucketRange(const BucketRange &v): p_node(v.p_node), p_end(v.p_end) {}
 
     template<typename U>
     BucketRange(const BucketRange<U> &v, EnableIf<
         IsSame<RemoveCv<T>, RemoveCv<U>>::value &&
         IsConvertible<U *, T *>::value, bool
-    > = true): p_node((Chain *)v.p_node) {}
+    > = true): p_node((Chain *)v.p_node), p_end((Chain *)v.p_end) {}
 
     BucketRange &operator=(const BucketRange &v) {
         p_node = v.p_node;
+        p_end = v.p_end;
         return *this;
     }
 
-    bool empty() const { return !p_node; }
+    bool empty() const { return p_node == p_end; }
 
     bool pop_front() {
-        if (!p_node) return false;
+        if (p_node == p_end) return false;
         p_node = p_node->next;
         return true;
     }
@@ -138,6 +121,63 @@ public:
 };
 
 namespace detail {
+    /* Use template metaprogramming to figure out a correct number
+     * of elements to use per chunk for proper cache alignment
+     * (i.e. sizeof(Chunk) % CACHE_LINE_SIZE == 0).
+     *
+     * If this is not possible, use the upper bound and pad the
+     * structure with some extra bytes.
+     */
+    static constexpr Size CACHE_LINE_SIZE = 64;
+    static constexpr Size CHUNK_LOWER_BOUND = 32;
+    static constexpr Size CHUNK_UPPER_BOUND = 128;
+
+    template<typename E, Size N>
+    struct HashChainAlign {
+        static constexpr Size csize = sizeof(HashChain<E>[N]) + sizeof(void *);
+        static constexpr Size value = ((csize % CACHE_LINE_SIZE) == 0)
+            ? N : HashChainAlign<E, N + 1>::value;
+    };
+
+    template<typename E>
+    struct HashChainAlign<E, CHUNK_UPPER_BOUND> {
+        static constexpr Size value = CHUNK_UPPER_BOUND;
+    };
+
+    template<Size N, bool B>
+    struct HashChainPad;
+
+    template<Size N>
+    struct HashChainPad<N, true> {};
+
+    template<Size N>
+    struct HashChainPad<N, false> {
+        byte pad[CACHE_LINE_SIZE - (N % CACHE_LINE_SIZE)];
+    };
+
+    template<Size N>
+    struct HashPad: HashChainPad<N, N % CACHE_LINE_SIZE == 0> {};
+
+    template<typename E, Size V = HashChainAlign<E, CHUNK_LOWER_BOUND>::value,
+             bool P = (V == CHUNK_UPPER_BOUND)
+    > struct HashChunk;
+
+    template<typename E, Size V>
+    struct HashChunk<E, V, false> {
+        static constexpr Size num = V;
+        HashChain<E> chains[num];
+        HashChunk *next;
+    };
+
+    template<typename E, Size V>
+    struct HashChunk<E, V, true>: HashPad<
+        sizeof(HashChain<E>[V]) + sizeof(void *)
+    > {
+        static constexpr Size num = V;
+        HashChain<E> chains[num];
+        HashChunk *next;
+    };
+
     template<
         typename B, /* contains methods specific to each ht type */
         typename E, /* element type */
@@ -149,14 +189,8 @@ namespace detail {
         bool Multihash
     > struct Hashtable {
 private:
-        static constexpr Size CHUNKSIZE = 64;
-
-        using Chain = detail::HashChain<E>;
-
-        struct Chunk {
-            Chain chains[CHUNKSIZE];
-            Chunk *next;
-        };
+        using Chain = HashChain<E>;
+        using Chunk = HashChunk<E>;
 
         Size p_size;
         Size p_len;
@@ -182,46 +216,67 @@ private:
 
         float p_maxlf;
 
-        Range iter_from(Chain *c, Size h) {
-            return Range(p_data.first() + h + 1,
-                p_data.first() + bucket_count(), c);
-        }
-        ConstRange iter_from(Chain *c, Size h) const {
-            using RChain = detail::HashChain<const E>;
-            return ConstRange((RChain **)(p_data.first() + h + 1),
-                              (RChain **)(p_data.first() + bucket_count()),
-                              (RChain *)c);
+        void clear_buckets() {
+            memset(p_data.first(), 0, (p_size + 1) * sizeof(Chain *));
         }
 
-        bool find(const K &key, Size &h, Chain *&oc) const {
-            if (!p_size) return false;
-            h = get_hash()(key) & (p_size - 1);
-            for (Chain *c = p_data.first()[h]; c; c = c->next) {
-                if (get_eq()(key, B::get_key(c->value))) {
-                    oc = c;
-                    return true;
-                }
+        void init_buckets() {
+            p_data.first() = allocator_allocate(get_cpalloc(), p_size + 1);
+            clear_buckets();
+        }
+
+        Chain *find(const K &key, Size &h) const {
+            if (!p_size) return nullptr;
+            h = bucket(key);
+            Chain **cp = p_data.first();
+            for (Chain *c = cp[h], *e = cp[h + 1]; c != e; c = c->next)
+                if (get_eq()(key, B::get_key(c->value)))
+                    return c;
+            return nullptr;
+        }
+
+        Chain *insert_node(Size h, Chain *c) {
+            Chain **cp = p_data.first();
+            Chain *it = cp[h + 1];
+            c->next = it;
+            if (it) {
+                c->prev = it->prev;
+                it->prev = c;
+                if (c->prev) c->prev->next = c;
+            } else {
+                size_t nb = h;
+                while (nb && !cp[nb]) --nb;
+                Chain *prev = cp[nb];
+                while (prev && prev->next) prev = prev->next;
+                c->prev = prev;
+                if (prev) prev->next = c;
             }
-            return false;
+            for (; it == cp[h]; --h) {
+                cp[h] = c;
+                if (!h) break;
+            }
+            return c;
         }
 
-        Chain *insert(Size h) {
+        Chain *request_node() {
             if (!p_unused) {
                 Chunk *chunk = allocator_allocate(get_challoc(), 1);
                 allocator_construct(get_challoc(), chunk);
                 chunk->next = p_chunks;
                 p_chunks = chunk;
-                for (Size i = 0; i < (CHUNKSIZE - 1); ++i)
+                for (Size i = 0; i < (Chunk::num - 1); ++i)
                     chunk->chains[i].next = &chunk->chains[i + 1];
-                chunk->chains[CHUNKSIZE - 1].next = p_unused;
+                chunk->chains[Chunk::num - 1].next = p_unused;
                 p_unused = chunk->chains;
             }
+            ++p_len;
             Chain *c = p_unused;
             p_unused = p_unused->next;
-            c->next = p_data.first()[h];
-            p_data.first()[h] = c;
-            ++p_len;
             return c;
+        }
+
+        Chain *insert(Size h) {
+            return insert_node(h, request_node());
         }
 
         void delete_chunks(Chunk *chunks) {
@@ -230,16 +285,6 @@ private:
                 allocator_destroy(get_challoc(), chunks);
                 allocator_deallocate(get_challoc(), chunks, 1);
             }
-        }
-
-        T *access_base(const K &key, Size &h) const {
-            if (!p_size) return NULL;
-            h = get_hash()(key) & (p_size - 1);
-            for (Chain *c = p_data.first()[h]; c; c = c->next) {
-                if (get_eq()(key, B::get_key(c->value)))
-                    return &B::get_data(c->value);
-            }
-            return NULL;
         }
 
         void rehash_ahead(Size n) {
@@ -259,23 +304,25 @@ protected:
 
         T &access_or_insert(const K &key) {
             Size h = 0;
-            T *v = access_base(key, h);
-            if (v) return *v;
+            Chain *c = find(key, h);
+            if (c) return B::get_data(c->value);
             rehash_ahead(1);
             return insert(h, key);
         }
 
         T &access_or_insert(K &&key) {
             Size h = 0;
-            T *v = access_base(key, h);
-            if (v) return *v;
+            Chain *c = find(key, h);
+            if (c) return B::get_data(c->value);
             rehash_ahead(1);
             return insert(h, move(key));
         }
 
-        T &access(const K &key) const {
+        T *access(const K &key) const {
             Size h;
-            return *access_base(key, h);
+            Chain *c = find(key, h);
+            if (c) return &B::get_data(c->value);
+            return nullptr;
         }
 
         template<typename R>
@@ -317,8 +364,7 @@ protected:
             FuncPair(hf, eqf))),
         p_maxlf(1.0f) {
             if (!size) return;
-            p_data.first() = allocator_allocate(get_cpalloc(), size);
-            memset(p_data.first(), 0, size * sizeof(Chain *));
+            init_buckets();
         }
 
         Hashtable(const Hashtable &ht, const A &alloc): p_size(ht.p_size),
@@ -327,16 +373,13 @@ protected:
             FuncPair(ht.get_hash(), ht.get_eq()))),
         p_maxlf(ht.p_maxlf) {
             if (!p_size) return;
-            p_data.first() = allocator_allocate(get_cpalloc(), p_size);
-            memset(p_data.first(), 0, p_size * sizeof(Chain *));
+            init_buckets();
             Chain **och = ht.p_data.first();
-            for (Size h = 0; h < p_size; ++h) {
-                Chain *oc = och[h];
-                for (; oc; oc = oc->next) {
-                    Chain *nc = insert(h);
-                    allocator_destroy(get_alloc(), &nc->value);
-                    allocator_construct(get_alloc(), &nc->value, oc->value);
-                }
+            for (Chain *oc = *och; oc; oc = oc->next) {
+                Size h = bucket(B::get_key(oc->value));
+                Chain *nc = insert(h);
+                allocator_destroy(get_alloc(), &nc->value);
+                allocator_construct(get_alloc(), &nc->value, oc->value);
             }
         }
 
@@ -368,15 +411,12 @@ protected:
             p_len = 0;
             p_chunks = nullptr;
             p_unused = nullptr;
-            p_data.first() = allocator_allocate(get_cpalloc(), p_size);
-            memset(p_data.first(), 0, p_size * sizeof(Chain *));
+            init_buckets();
             Chain **och = ht.p_data.first();
-            for (Size h = 0; h < p_size; ++h) {
-                Chain *oc = och[h];
-                for (; oc; oc = oc->next) {
-                    Chain *nc = insert(h);
-                    B::swap_elem(oc->value, nc->value);
-                }
+            for (Chain *oc = *och; oc; oc = oc->next) {
+                Size h = bucket(B::get_key(oc->value));
+                Chain *nc = insert(h);
+                B::swap_elem(oc->value, nc->value);
             }
         }
 
@@ -385,10 +425,8 @@ protected:
             if (AllocatorPropagateOnContainerCopyAssignment<A>::value) {
                 if ((get_cpalloc() != ht.get_cpalloc()) && p_size) {
                     allocator_deallocate(get_cpalloc(),
-                        p_data.first(), p_size);
-                    p_data.first() = allocator_allocate(get_cpalloc(),
-                        p_size);
-                    memset(p_data.first(), 0, p_size * sizeof(Chain *));
+                        p_data.first(), p_size + 1);
+                    init_buckets();
                 }
                 get_alloc() = ht.get_alloc();
                 get_cpalloc() = ht.get_cpalloc();
@@ -437,7 +475,7 @@ protected:
 public:
         ~Hashtable() {
             if (p_size) allocator_deallocate(get_cpalloc(),
-                p_data.first(), p_size);
+                p_data.first(), p_size + 1);
             delete_chunks(p_chunks);
         }
 
@@ -447,7 +485,7 @@ public:
 
         void clear() {
             if (!p_len) return;
-            memset(p_data.first(), 0, p_size * sizeof(Chain *));
+            clear_buckets();
             p_len = 0;
             p_unused = nullptr;
             delete_chunks(p_chunks);
@@ -466,10 +504,9 @@ public:
 
         Size bucket_size(Size n) const {
             Size ret = 0;
-            if (ret >= p_size) return ret;
-            Chain *c = p_data.first()[n];
-            if (!c) return ret;
-            for (; c; c = c->next)
+            if (n >= p_size) return ret;
+            Chain **cp = p_data.first();
+            for (Chain *c = cp[n], *e = cp[n + 1]; c != e; c = c->next)
                 ++ret;
             return ret;
         }
@@ -478,18 +515,31 @@ public:
         Pair<Range, bool> emplace(Args &&...args) {
             rehash_ahead(1);
             E elem(forward<Args>(args)...);
-            Size h = get_hash()(B::get_key(elem)) & (p_size - 1);
             if (Multihash) {
-                /* multihash: always insert */
-                Chain *ch = insert(h);
+                /* multihash: always insert
+                 * gotta make sure that equal keys always come  after
+                 * each other (this is then used by other APIs)
+                 */
+                Size h = 0;
+                Chain *found = find(B::get_key(elem), h);
+                if (!found) {
+                    Chain *ch = insert(h);
+                    B::swap_elem(ch->value, elem);
+                    return make_pair(Range(ch), true);
+                }
+                Chain *ch = request_node();
                 B::swap_elem(ch->value, elem);
-                Chain **hch = p_data.first();
-                return make_pair(Range(hch + h + 1, hch + bucket_count(),
-                    ch), true);
+                Chain *next = found->next;
+                found->next = ch;
+                ch->prev = found;
+                ch->next = next;
+                if (next) next->prev = ch;
             }
+            Size h = bucket(B::get_key(elem));
             Chain *found = nullptr;
             bool ins = true;
-            for (Chain *c = p_data.first()[h]; c; c = c->next) {
+            Chain **cp = p_data.first();
+            for (Chain *c = cp[h], *e = cp[h + 1]; c != e; c = c->next) {
                 if (get_eq()(B::get_key(elem), B::get_key(c->value))) {
                     found = c;
                     ins = false;
@@ -500,57 +550,55 @@ public:
                 found = insert(h);
                 B::swap_elem(found->value, elem);
             }
-            Chain **hch = p_data.first();
-            return make_pair(Range(hch + h + 1, hch + bucket_count(),
-                found), ins);
+            return make_pair(Range(found), ins);
         }
 
         Size erase(const K &key) {
-            if (!p_len) return 0;
+            Size h = 0;
+            Chain *c = find(key, h);
+            if (!c) return 0;
+            Chain **cp = p_data.first();
             Size olen = p_len;
-            Size h = get_hash()(key) & (p_size - 1);
-            Chain **p = &p_data.first()[h], *c = *p;
-            while (c) {
-                if (get_eq()(key, B::get_key(c->value))) {
-                    --p_len;
-                    *p = c->next;
-                    c->next = p_unused;
-                    p_unused = c;
-                    allocator_destroy(get_alloc(), &c->value);
-                    allocator_construct(get_alloc(), &c->value);
-                    if (!Multihash) return 1;
-                } else {
-                    p = &c->next;
+            for (Chain *e = cp[h + 1]; c != e; c = c->next) {
+                if (!get_eq()(key, B::get_key(c->value))) break;
+                --p_len;
+                Size hh = h;
+                Chain *next = c->next;
+                for (; cp[hh] == c; --hh) {
+                    cp[hh] = next;
+                    if (!hh) break;
                 }
-                c = *p;
+                if (c->prev) c->prev->next = next;
+                if (next) next->prev = c->prev;
+                c->next = p_unused;
+                c->prev = nullptr;
+                p_unused = c;
+                allocator_destroy(get_alloc(), &c->value);
+                allocator_construct(get_alloc(), &c->value);
+                if (!Multihash) return 1;
             }
             return olen - p_len;
         }
 
         Size count(const K &key) {
-            if (!p_len) return 0;
-            Size h = get_hash()(key) & (p_size - 1);
-            Size ret = 0;
-            for (Chain *c = p_data.first()[h]; c; c = c->next)
-                if (get_eq()(key, B::get_key(c->value))) {
-                    ++ret;
-                    if (!Multihash) break;
-                }
+            Size h = 0;
+            Chain *c = find(key, h);
+            if (!c) return 0;
+            Size ret = 1;
+            if (!Multihash) return ret;
+            for (c = c->next; c; c = c->next)
+                if (get_eq()(key, B::get_key(c->value))) ++ret;
             return ret;
         }
 
         Range find(const K &key) {
             Size h = 0;
-            Chain *c;
-            if (find(key, h, c)) return iter_from(c, h);
-            return Range();
+            return Range(find(key, h));
         }
 
         ConstRange find(const K &key) const {
             Size h = 0;
-            Chain *c;
-            if (find(key, h, c)) return iter_from(c, h);
-            return ConstRange();
+            return ConstRange((detail::HashChain<const E> *)find(key, h));
         }
 
         float load_factor() const { return float(p_len) / p_size; }
@@ -562,25 +610,22 @@ public:
             if (fbcount > count) count = fbcount;
 
             Chain **och = p_data.first();
-            Chain **nch = allocator_allocate(get_cpalloc(), count);
-            memset(nch, 0, count * sizeof(Chain *));
-            p_data.first() = nch;
-
             Size osize = p_size;
-            p_size = count;
 
-            for (Size i = 0; i < osize; ++i) {
-                for (Chain *oc = och[i]; oc;) {
-                    Size h = get_hash()(B::get_key(oc->value)) & (p_size - 1);
-                    Chain *nxc = oc->next;
-                    oc->next = nch[h];
-                    nch[h] = oc;
-                    oc = nxc;
-                }
+            p_size = count;
+            init_buckets();
+
+            Chain *p = och ? *och : nullptr;
+            while (p) {
+                Chain *pp = p->next;
+                Size h = bucket(B::get_key(p->value));
+                p->prev = p->next = nullptr;
+                insert_node(h, p);
+                p = pp;
             }
 
             if (och && osize) allocator_deallocate(get_cpalloc(),
-                och, osize);
+                och, osize + 1);
         }
 
         void reserve(Size count) {
@@ -588,32 +633,35 @@ public:
         }
 
         Range iter() {
-            return Range(p_data.first(), p_data.first() + bucket_count());
+            if (!p_len) return Range();
+            return Range(*p_data.first());
         }
         ConstRange iter() const {
             using Chain = detail::HashChain<const E>;
-            return ConstRange((Chain **)p_data.first(),
-                              (Chain **)(p_data.first() + bucket_count()));
+            if (!p_len) return ConstRange();
+            return ConstRange((Chain *)*p_data.first());
         }
         ConstRange citer() const {
             using Chain = detail::HashChain<const E>;
-            return ConstRange((Chain **)p_data.first(),
-                              (Chain **)(p_data.first() + bucket_count()));
+            if (!p_len) return ConstRange();
+            return ConstRange((Chain *)*p_data.first());
         }
 
         LocalRange iter(Size n) {
             if (n >= p_size) return LocalRange();
-            return LocalRange(p_data.first()[n]);
+            return LocalRange(p_data.first()[n], p_data.first()[n + 1]);
         }
         ConstLocalRange iter(Size n) const {
             using Chain = detail::HashChain<const E>;
             if (n >= p_size) return ConstLocalRange();
-            return ConstLocalRange((Chain *)p_data.first()[n]);
+            return ConstLocalRange((Chain *)p_data.first()[n],
+                                   (Chain *)p_data.first()[n + 1]);
         }
         ConstLocalRange citer(Size n) const {
             using Chain = detail::HashChain<const E>;
             if (n >= p_size) return ConstLocalRange();
-            return ConstLocalRange((Chain *)p_data.first()[n]);
+            return ConstLocalRange((Chain *)p_data.first()[n],
+                                   (Chain *)p_data.first()[n + 1]);
         }
     };
 } /* namespace detail */

@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <string.h>
 #include "ostd/array.hh"
 #include "ostd/string.hh"
 
@@ -39,7 +38,7 @@ int main() {
 
     assert(z.size() == 5);
 
-    assert(!strcmp(to_string(z).data(), "{2, 4, 8, 16, 32}"));
+    assert(to_string(z) == "{2, 4, 8, 16, 32}");
 
     return 0;
 }

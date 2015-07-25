@@ -218,10 +218,25 @@ OSTD_HASH_BASIC(Wchar)
 #undef OSTD_HASH_BASIC
 
 namespace detail {
+    template<Size E> struct FnvConstants {
+        static constexpr Size prime = 16777619u;
+        static constexpr Size offset = 2166136261u;
+    };
+
+
+    template<> struct FnvConstants<8> {
+        static constexpr Size prime = 1099511628211u;
+        static constexpr Size offset = 14695981039346656037u;
+    };
+
     inline Size mem_hash(const void *p, Size l) {
+        using Consts = FnvConstants<sizeof(Size)>;
         const byte *d = (const byte *)p;
-        Size h = 5381;
-        for (Size i = 0; i < l; ++i) h = ((h << 5) + h) ^ d[i];
+        Size h = Consts::offset;
+        for (const byte *it = d, *end = d + l; it != end; ++it) {
+            h ^= *it;
+            h *= Consts::prime;
+        }
         return h;
     }
 

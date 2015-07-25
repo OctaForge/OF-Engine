@@ -22,6 +22,7 @@ struct ForwardRangeTag: InputRangeTag {};
 struct BidirectionalRangeTag: ForwardRangeTag {};
 struct RandomAccessRangeTag: BidirectionalRangeTag {};
 struct FiniteRandomAccessRangeTag: RandomAccessRangeTag {};
+struct ContiguousRangeTag: FiniteRandomAccessRangeTag {};
 
 template<typename T> struct RangeHalf;
 
@@ -161,6 +162,24 @@ template<typename T>
 struct IsInfiniteRandomAccessRange: IntegralConstant<bool,
     (IsRandomAccessRange<T>::value && !IsFiniteRandomAccessRange<T>::value)
 > {};
+
+// is contiguous range
+
+namespace detail {
+    template<typename T, bool = IsConvertible<
+        RangeCategory<T>, ContiguousRangeTag
+    >::value> struct IsContiguousRangeBase: False {};
+
+    template<typename T>
+    struct IsContiguousRangeBase<T, true>: True {};
+}
+
+template<typename T, bool = detail::IsRangeTest<T>::value>
+struct IsContiguousRange: False {};
+
+template<typename T>
+struct IsContiguousRange<T, true>:
+    detail::IsContiguousRangeBase<T>::Type {};
 
 // is output range
 
@@ -789,7 +808,7 @@ NumberRange<T> range(T v) {
 }
 
 template<typename T>
-struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> {
+struct PointerRange: InputRange<PointerRange<T>, ContiguousRangeTag, T> {
     PointerRange() = delete;
     PointerRange(T *beg, T *end): p_beg(beg), p_end(end) {}
     PointerRange(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
@@ -922,6 +941,9 @@ struct PointerRange: InputRange<PointerRange<T>, FiniteRandomAccessRangeTag, T> 
         if (n < c) c = n;
         return copy(PointerRange(p, c), c);
     }
+
+    T *data() { return p_beg; }
+    const T *data() const { return p_beg; }
 
 private:
     T *p_beg, *p_end;

@@ -48,9 +48,33 @@ namespace detail {
             return false;
         }
     };
+
+    struct UnsafeWritefRange: OutputRange<UnsafeWritefRange, char> {
+        UnsafeWritefRange(char *p): p_ptr(p) {}
+        bool put(char c) {
+            *p_ptr++ = c;
+            return true;
+        }
+        char *p_ptr;
+    };
 }
 
 struct Stream {
+private:
+    struct StNat {};
+
+    bool write_impl(ConstCharRange s) {
+        return write_bytes(s.data(), s.size()) == s.size();
+    }
+
+    template<typename T>
+    inline void write_impl(const T &v, EnableIf<
+        !IsConstructible<ConstCharRange, const T &>::value, StNat
+    > = StNat()) {
+        write(ostd::to_string(v));
+    }
+
+public:
     using Offset = StreamOffset;
 
     virtual ~Stream() {}
@@ -87,17 +111,9 @@ struct Stream {
         return write_bytes(&wc, 1) == 1;
     }
 
-    virtual bool write(const char *s) {
-        Size len = strlen(s);
-        return write_bytes(s, len) == len;
-    }
-
-    virtual bool write(const String &s) {
-        return write_bytes(s.data(), s.size()) == s.size();
-    }
-
-    template<typename T> bool write(const T &v) {
-        return write(to_string(v));
+    template<typename T>
+    bool write(const T &v) {
+        write_impl(v);
     }
 
     template<typename T, typename ...A>
@@ -105,15 +121,8 @@ struct Stream {
         return write(v) && write(args...);
     }
 
-    virtual bool writeln(const String &s) {
-        return write(s) && putchar('\n');
-    }
-
-    virtual bool writeln(const char *s) {
-        return write(s) && putchar('\n');
-    }
-
-    template<typename T> bool writeln(const T &v) {
+    template<typename T>
+    bool writeln(const T &v) {
         return write(v) && putchar('\n');
     }
 
@@ -123,32 +132,23 @@ struct Stream {
     }
 
     template<typename ...A>
-    bool writef(const char *fmt, const A &...args) {
+    bool writef(ConstCharRange fmt, const A &...args) {
         char buf[512];
-        Size need = format(detail::FormatOutRange<sizeof(buf)>(buf),
+        Ptrdiff need = format(detail::FormatOutRange<sizeof(buf)>(buf),
             fmt, args...);
-        if (need < sizeof(buf))
-            return write_bytes(buf, need) == need;
-        String s;
+        if (need < 0)
+            return false;
+        else if (Size(need) < sizeof(buf))
+            return write_bytes(buf, need) == Size(need);
+        Vector<char> s;
         s.reserve(need);
-        s[need] = '\0';
-        format(s.iter(), fmt, args...);
-        return write_bytes(s.data(), need) == need;
+        format(detail::UnsafeWritefRange(s.data()), fmt, args...);
+        return write_bytes(s.data(), need) == Size(need);
     }
 
     template<typename ...A>
-    bool writef(const String &fmt, const A &...args) {
-        return writef(fmt.data(), args...);
-    }
-
-    template<typename ...A>
-    bool writefln(const char *fmt, const A &...args) {
+    bool writefln(ConstCharRange fmt, const A &...args) {
         return writef(fmt, args...) && putchar('\n');
-    }
-
-    template<typename ...A>
-    bool writefln(const String &fmt, const A &...args) {
-        return writefln(fmt.data(), args...);
     }
 
     template<typename T = char>

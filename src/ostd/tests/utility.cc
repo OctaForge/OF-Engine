@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <string.h>
 #include "ostd/utility.hh"
 #include "ostd/string.hh"
 
@@ -85,7 +84,7 @@ int main() {
     assert(x.second == 3.14f);
 
     auto st = make_pair(5, 10);
-    assert(!strcmp(to_string(st).data(), "{5, 10}"));
+    assert(to_string(st) == "{5, 10}");
 
     return 0;
 }

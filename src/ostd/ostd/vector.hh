@@ -138,19 +138,19 @@ public:
         v.p_len = v.p_cap = 0;
     }
 
-    Vector(const Value *buf, Size n, const A &a = A()): Vector(a) {
-        reserve(n);
+    Vector(ConstRange r, const A &a = A()): Vector(a) {
+        reserve(r.size());
         if (IsPod<T>()) {
-            memcpy(p_buf.first(), buf, n * sizeof(T));
+            memcpy(p_buf.first(), &r[0], r.size() * sizeof(T));
         } else {
-            for (Size i = 0; i < n; ++i)
-                allocator_construct(p_buf.second(), &p_buf.first()[i], buf[i]);
+            for (Size i = 0; i < r.size(); ++i)
+                allocator_construct(p_buf.second(), &p_buf.first()[i], r[i]);
         }
-        p_len = n;
+        p_len = r.size();
     }
 
     Vector(InitializerList<T> v, const A &a = A()):
-        Vector(v.begin(), v.size(), a) {}
+        Vector(ConstRange(v.begin(), v.size()), a) {}
 
     template<typename R, typename = EnableIf<
         IsInputRange<R>::value &&
