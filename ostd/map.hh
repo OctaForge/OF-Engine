@@ -139,11 +139,11 @@ namespace detail {
             return *this;
         }
 
-        T &at(const K &key) {
+        T *at(const K &key) {
             static_assert(!IsMultihash, "at() only allowed on regular maps");
             return Base::access(key);
         }
-        const T &at(const K &key) const {
+        const T *at(const K &key) const {
             static_assert(!IsMultihash, "at() only allowed on regular maps");
             return Base::access(key);
         }

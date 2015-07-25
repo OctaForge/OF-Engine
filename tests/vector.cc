@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <string.h>
 #include "ostd/vector.hh"
 #include "ostd/string.hh"
 
@@ -85,7 +84,7 @@ int main() {
     assert(w.front() == 5);
     assert(w.back() == 5);
 
-    assert(!strcmp(to_string(w).data(), "{5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5}"));
+    assert(to_string(w) == "{5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5}");
 
     return 0;
 }

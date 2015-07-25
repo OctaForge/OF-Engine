@@ -34,12 +34,7 @@ struct FileStream: Stream {
         s.p_owned = false;
     }
 
-    FileStream(const char *path, StreamMode mode): p_f() {
-        open(path, mode);
-    }
-
-    template<typename A>
-    FileStream(const AnyString<A> &path, StreamMode mode): p_f() {
+    FileStream(ConstCharRange path, StreamMode mode): p_f() {
         open(path, mode);
     }
 
@@ -54,16 +49,14 @@ struct FileStream: Stream {
         return *this;
     }
 
-    bool open(const char *path, StreamMode mode) {
-        if (p_f) return false;
-        p_f = fopen(path, detail::filemodes[Size(mode)]);
+    bool open(ConstCharRange path, StreamMode mode) {
+        if (p_f || path.size() > FILENAME_MAX) return false;
+        char buf[FILENAME_MAX + 1];
+        memcpy(buf, &path[0], path.size());
+        buf[path.size()] = '\0';
+        p_f = fopen(buf, detail::filemodes[Size(mode)]);
         p_owned = true;
         return is_open();
-    }
-
-    template<typename A>
-    bool open(const AnyString<A> &path, StreamMode mode) {
-        return open(path.data(), mode);
     }
 
     bool open(FILE *f) {
@@ -120,10 +113,6 @@ struct FileStream: Stream {
         return  fputc(c, p_f) != EOF;
     }
 
-    bool write(const char *s) {
-        return fputs(s, p_f) != EOF;
-    }
-
     void swap(FileStream &s) {
         ostd::swap(p_f, s.p_f);
         ostd::swap(p_owned, s.p_owned);
@@ -142,18 +131,24 @@ static FileStream err(::stderr);
 
 /* no need to call anything from FileStream, prefer simple calls... */
 
-inline void write(const char *s) {
-    fputs(s, ::stdout);
-}
+namespace detail {
+    struct IoNat {};
 
-template<typename A>
-inline void write(const AnyString<A> &s) {
-    fwrite(s.data(), 1, s.size(), ::stdout);
+    inline void write_impl(ConstCharRange s) {
+        fwrite(&s[0], 1, s.size(), ::stdout);
+    }
+
+    template<typename T>
+    inline void write_impl(const T &v, EnableIf<
+        !IsConstructible<ConstCharRange, const T &>::value, IoNat
+    > = IoNat()) {
+        write(ostd::to_string(v));
+    }
 }
 
 template<typename T>
 inline void write(const T &v) {
-    write(ostd::to_string(v));
+    detail::write_impl(v);
 }
 
 template<typename T, typename ...A>
@@ -162,20 +157,10 @@ inline void write(const T &v, const A &...args) {
     write(args...);
 }
 
-inline void writeln(const char *s) {
-    write(s);
-    putc('\n', ::stdout);
-}
-
-template<typename A>
-inline void writeln(const AnyString<A> &s) {
-    write(s);
-    putc('\n', ::stdout);
-}
-
 template<typename T>
 inline void writeln(const T &v) {
-    writeln(ostd::to_string(v));
+    write(v);
+    putc('\n', ::stdout);
 }
 
 template<typename T, typename ...A>
@@ -185,19 +170,8 @@ inline void writeln(const T &v, const A &...args) {
     putc('\n', ::stdout);
 }
 
-namespace detail {
-    struct UnsafeWritefRange: OutputRange<UnsafeWritefRange, char> {
-        UnsafeWritefRange(char *p): p_ptr(p) {}
-        bool put(char c) {
-            *p_ptr++ = c;
-            return true;
-        }
-        char *p_ptr;
-    };
-}
-
 template<typename ...A>
-inline void writef(const char *fmt, const A &...args) {
+inline void writef(ConstCharRange fmt, const A &...args) {
     char buf[512];
     Ptrdiff need = format(detail::FormatOutRange<sizeof(buf)>(buf),
         fmt, args...);
@@ -212,21 +186,8 @@ inline void writef(const char *fmt, const A &...args) {
     fwrite(s.data(), 1, need, ::stdout);
 }
 
-template<typename AL, typename ...A>
-inline void writef(const AnyString<AL> &fmt,
-                          const A &...args) {
-    writef(fmt.data(), args...);
-}
-
 template<typename ...A>
-inline void writefln(const char *fmt, const A &...args) {
-    writef(fmt, args...);
-    putc('\n', ::stdout);
-}
-
-template<typename AL, typename ...A>
-inline void writefln(const AnyString<AL> &fmt,
-                            const A &...args) {
+inline void writefln(ConstCharRange fmt, const A &...args) {
     writef(fmt, args...);
     putc('\n', ::stdout);
 }

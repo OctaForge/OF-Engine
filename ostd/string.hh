@@ -12,6 +12,8 @@
 #include "ostd/utility.hh"
 #include "ostd/range.hh"
 #include "ostd/vector.hh"
+#include "ostd/functional.hh"
+#include "ostd/type_traits.hh"
 
 namespace ostd {
 static constexpr Size npos = -1;
@@ -19,34 +21,50 @@ static constexpr Size npos = -1;
 template<typename T, typename A = Allocator<T>> class StringBase;
 
 template<typename T>
-struct StringRangeBase: InputRange<
-    StringRangeBase<T>, FiniteRandomAccessRangeTag, T
+struct CharRangeBase: InputRange<
+    CharRangeBase<T>, ContiguousRangeTag, T
 > {
-    StringRangeBase() = delete;
-    StringRangeBase(T *beg, T *end): p_beg(beg), p_end(end) {}
-    StringRangeBase(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
-    /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
-    StringRangeBase(T *beg): p_beg(beg), p_end(beg + strlen(beg)) {}
+private:
+    struct Nat {};
 
-    template<typename A>
-    StringRangeBase(const StringBase<T, A> &s): p_beg(s.data()),
+public:
+    CharRangeBase(): p_beg(nullptr), p_end(nullptr) {};
+    CharRangeBase(T *beg, T *end): p_beg(beg), p_end(end) {}
+    CharRangeBase(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
+
+    /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
+    template<typename U>
+    CharRangeBase(U beg, EnableIf<
+        IsConvertible<U, T *>::value && !IsArray<U>::value, Nat
+    > = Nat()): p_beg(beg), p_end((T *)beg + strlen(beg)) {}
+
+    template<typename U, Size N>
+    CharRangeBase(U (&beg)[N], EnableIf<
+        IsConvertible<U *, T *>::value, Nat
+    > = Nat()): p_beg(beg),
+        p_end(beg + N - (beg[N - 1] == '\0')) {}
+
+    template<typename U, typename A>
+    CharRangeBase(const StringBase<U, A> &s, EnableIf<
+        IsConvertible<U *, T *>::value, Nat
+    > = Nat()): p_beg(s.data()),
         p_end(s.data() + s.size()) {}
 
     template<typename U, typename = EnableIf<
         IsConvertible<U *, T *>::value
-    >> StringRangeBase(const StringRangeBase<U> &v):
+    >> CharRangeBase(const CharRangeBase<U> &v):
         p_beg(&v[0]), p_end(&v[v.size()]) {}
 
-    StringRangeBase &operator=(const StringRangeBase &v) {
+    CharRangeBase &operator=(const CharRangeBase &v) {
         p_beg = v.p_beg; p_end = v.p_end; return *this;
     }
 
     template<typename A>
-    StringRangeBase &operator=(const StringBase<T, A> &s) {
+    CharRangeBase &operator=(const StringBase<T, A> &s) {
         p_beg = s.data(); p_end = s.data() + s.size(); return *this;
     }
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
-    StringRangeBase &operator=(T *s) {
+    CharRangeBase &operator=(T *s) {
         p_beg = s; p_end = s + strlen(s); return *this;
     }
 
@@ -73,11 +91,11 @@ struct StringRangeBase: InputRange<
 
     T &front() const { return *p_beg; }
 
-    bool equals_front(const StringRangeBase &range) const {
+    bool equals_front(const CharRangeBase &range) const {
         return p_beg == range.p_beg;
     }
 
-    Ptrdiff distance_front(const StringRangeBase &range) const {
+    Ptrdiff distance_front(const CharRangeBase &range) const {
         return range.p_beg - p_beg;
     }
 
@@ -102,18 +120,18 @@ struct StringRangeBase: InputRange<
 
     T &back() const { return *(p_end - 1); }
 
-    bool equals_back(const StringRangeBase &range) const {
+    bool equals_back(const CharRangeBase &range) const {
         return p_end == range.p_end;
     }
 
-    Ptrdiff distance_back(const StringRangeBase &range) const {
+    Ptrdiff distance_back(const CharRangeBase &range) const {
         return range.p_end - p_end;
     }
 
     Size size() const { return p_end - p_beg; }
 
-    StringRangeBase slice(Size start, Size end) const {
-        return StringRangeBase(p_beg + start, p_beg + end);
+    CharRangeBase slice(Size start, Size end) const {
+        return CharRangeBase(p_beg + start, p_beg + end);
     }
 
     T &operator[](Size i) const { return p_beg[i]; }
@@ -124,21 +142,49 @@ struct StringRangeBase: InputRange<
         return true;
     }
 
-    /* non-range methods */
     T *data() { return p_beg; }
     const T *data() const { return p_beg; }
 
     Size to_hash() const {
-        const T *d = data();
-        Size h = 5381, len = size();
-        for (Size i = 0; i < len; ++i)
-            h = ((h << 5) + h) ^ d[i];
-        return h;
+        return detail::mem_hash(data(), size());
+    }
+
+    /* non-range */
+    int compare(CharRangeBase<const T> s) const {
+        int ret = memcmp(data(), s.data(), ostd::min(size(), s.size()));
+        return ret ? ret : (size() - s.size());
     }
 
 private:
     T *p_beg, *p_end;
 };
+
+using CharRange = CharRangeBase<char>;
+using ConstCharRange = CharRangeBase<const char>;
+
+inline bool operator==(ConstCharRange lhs, ConstCharRange rhs) {
+    return !lhs.compare(rhs);
+}
+
+inline bool operator!=(ConstCharRange lhs, ConstCharRange rhs) {
+    return lhs.compare(rhs);
+}
+
+inline bool operator<(ConstCharRange lhs, ConstCharRange rhs) {
+    return lhs.compare(rhs) < 0;
+}
+
+inline bool operator>(ConstCharRange lhs, ConstCharRange rhs) {
+    return lhs.compare(rhs) > 0;
+}
+
+inline bool operator<=(ConstCharRange lhs, ConstCharRange rhs) {
+    return lhs.compare(rhs) <= 0;
+}
+
+inline bool operator>=(ConstCharRange lhs, ConstCharRange rhs) {
+    return lhs.compare(rhs) >= 0;
+}
 
 template<typename T, typename A>
 class StringBase {
@@ -185,8 +231,8 @@ public:
     using ConstReference = const T &;
     using Pointer = AllocatorPointer<A>;
     using ConstPointer = AllocatorConstPointer<A>;
-    using Range = StringRangeBase<T>;
-    using ConstRange = StringRangeBase<const T>;
+    using Range = CharRangeBase<T>;
+    using ConstRange = CharRangeBase<const T>;
     using Allocator = A;
 
     StringBase(const A &a = A()): p_len(0), p_cap(0),
@@ -248,26 +294,34 @@ public:
     }
 
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
-    StringBase(const Value *v, const A &a = A()): StringBase(a) {
-        Size len = strlen(v);
-        if (!len) return;
-        reserve(len);
-        memcpy(p_buf.first(), v, len + 1);
-        p_len = len;
+    StringBase(ConstRange v, const A &a = A()): StringBase(a) {
+        if (!v.size()) return;
+        reserve(v.size());
+        memcpy(p_buf.first(), &v[0], v.size());
+        p_buf.first()[v.size()] = '\0';
+        p_len = v.size();
     }
 
-    StringBase(const Value *v, Size n, const A &a = A()): StringBase(a) {
-        if (!n) return;
-        reserve(n);
-        memcpy(p_buf.first(), v, n);
-        p_buf.first()[n] = '\0';
-    }
+    template<typename U>
+    StringBase(U v, const EnableIf<
+        IsConvertible<U, const Value *>::value && !IsArray<U>::value, A
+    > &a = A()): StringBase(ConstRange(v), a) {}
+
+    template<typename U, Size N>
+    StringBase(U (&v)[N], const EnableIf<
+        IsConvertible<U *, const Value *>::value, A
+    > &a = A()): StringBase(ConstRange(v), a) {}
 
     template<typename R, typename = EnableIf<
         IsInputRange<R>::value &&
         IsConvertible<RangeReference<R>, Value>::value
     >> StringBase(R range, const A &a = A()): StringBase(a) {
         ctor_from_range(range);
+    }
+
+    ~StringBase() {
+        if (!p_cap) return;
+        allocator_deallocate(p_buf.second(), p_buf.first(), p_cap + 1);
     }
 
     void clear() {
@@ -306,11 +360,11 @@ public:
         if (!p_cap) p_buf.first() = (Pointer)&p_len;
         return *this;
     }
-    StringBase &operator=(const Value *v) {
-        Size len = strlen(v);
-        reserve(len);
-        if (len) memcpy(p_buf.first(), v, len);
-        p_buf.first()[len] = '\0';
+    StringBase &operator=(ConstRange v) {
+        reserve(v.size());
+        if (v.size()) memcpy(p_buf.first(), &v[0], v.size());
+        p_buf.first()[v.size()] = '\0';
+        p_len = v.size();
         return *this;
     }
     template<typename R, typename = EnableIf<
@@ -396,33 +450,11 @@ public:
         p_buf.first()[p_len] = '\0';
     }
 
-    StringBase &append(const StringBase &s) {
-        reserve(p_len + s.p_len);
-        if (!s.p_len) return *this;
-        memcpy(p_buf.first() + p_len, s.p_buf.first(), s.p_len);
-        p_len += s.p_len;
-        p_buf.first()[p_len] = '\0';
-        return *this;
-    }
-
-    StringBase &append(const StringBase &s, Size idx, Size len) {
-        if (!s.p_len) return;
-        Size end = (len == npos) ? s.size() : (idx + len);
-        Size nch = (end - idx);
-        if (!nch) return;
-        reserve(p_len + nch);
-        memcpy(p_buf.first() + p_len, s.p_buf.first() + idx, nch);
-        p_len += nch;
-        p_buf.first()[p_len] = '\0';
-        return *this;
-    }
-
-    StringBase &append(const Value *s) {
-        Size len = strlen(s);
-        reserve(p_len + len);
-        if (!len) return *this;
-        memcpy(p_buf.first() + p_len, s, len);
-        p_len += len;
+    StringBase &append(ConstRange r) {
+        if (!r.size()) return *this;
+        reserve(p_len + r.size());
+        memcpy(p_buf.first() + p_len, &r[0], r.size());
+        p_len += r.size();
         p_buf.first()[p_len] = '\0';
         return *this;
     }
@@ -436,8 +468,11 @@ public:
         return *this;
     }
 
-    template<typename R>
-    StringBase &append_range(R range) {
+    template<typename R, typename = EnableIf<
+        IsInputRange<R>::value &&
+        IsConvertible<RangeReference<R>, Value>::value &&
+        !IsConvertible<R, ConstRange>::value
+    >> StringBase &append(R range) {
         Size nadd = 0;
         for (; !range.empty(); range.pop_front()) {
             reserve(p_len + nadd + 1);
@@ -448,11 +483,8 @@ public:
         return *this;
     }
 
-    StringBase &operator+=(const StringBase &s) {
-        return append(s);
-    }
-    StringBase &operator+=(const Value *s) {
-        return append(s);
+    StringBase &operator+=(ConstRange r) {
+        return append(r);
     }
     StringBase &operator+=(T c) {
         reserve(p_len + 1);
@@ -460,13 +492,13 @@ public:
         p_buf.first()[p_len] = '\0';
         return *this;
     }
-
-    int compare(const StringBase &s) const {
-        return strcmp(p_buf.first(), s.data());
+    template<typename R>
+    StringBase &operator+=(const R &v) {
+        return append(v);
     }
 
-    int compare(const Value *p) const {
-        return strcmp(p_buf.first(), p);
+    int compare(ConstRange r) const {
+        return iter().compare(r);
     }
 
     Range iter() {
@@ -501,174 +533,119 @@ public:
 };
 
 using String = StringBase<char>;
-using StringRange = StringRangeBase<char>;
-using ConstStringRange = StringRangeBase<const char>;
-
-template<typename A> using AnyString = StringBase<char, A>;
-
-template<typename T, typename A>
-inline bool operator==(const StringBase<T, A> &lhs,
-                       const StringBase<T, A> &rhs) {
-    return !lhs.compare(rhs);
-}
-template<typename T, typename A>
-inline bool operator==(const StringBase<T, A> &lhs, const char *rhs) {
-    return !lhs.compare(rhs);
-}
-template<typename T, typename A>
-inline bool operator==(const char *lhs, const StringBase<T, A> &rhs) {
-    return !rhs.compare(lhs);
-}
-
-template<typename T, typename A>
-inline bool operator!=(const StringBase<T, A> &lhs,
-                       const StringBase<T, A> &rhs) {
-    return !(lhs == rhs);
-}
-template<typename T, typename A>
-inline bool operator!=(const StringBase<T, A> &lhs, const char *rhs) {
-    return !(lhs == rhs);
-}
-template<typename T, typename A>
-inline bool operator!=(const char *lhs,  const StringBase<T, A> &rhs) {
-    return !(rhs == lhs);
-}
-
-template<typename T, typename A>
-inline bool operator<(const StringBase<T, A> &lhs,
-                      const StringBase<T, A> &rhs) {
-    return lhs.compare(rhs) < 0;
-}
-template<typename T, typename A>
-inline bool operator<(const StringBase<T, A> &lhs, const char *rhs) {
-    return lhs.compare(rhs) < 0;
-}
-template<typename T, typename A>
-inline bool operator<(const char *lhs, const StringBase<T, A> &rhs) {
-    return rhs.compare(lhs) > 0;
-}
-
-template<typename T, typename A>
-inline bool operator>(const StringBase<T, A> &lhs,
-                      const StringBase<T, A> &rhs) {
-    return rhs < lhs;
-}
-template<typename T, typename A>
-inline bool operator>(const StringBase<T, A> &lhs, const char *rhs) {
-    return rhs < lhs;
-}
-template<typename T, typename A>
-inline bool operator>(const char *lhs, const StringBase<T, A> &rhs) {
-    return rhs < lhs;
-}
-
-template<typename T, typename A>
-inline bool operator<=(const StringBase<T, A> &lhs,
-                       const StringBase<T, A> &rhs) {
-    return !(rhs < lhs);
-}
-template<typename T, typename A>
-inline bool operator<=(const StringBase<T, A> &lhs, const char *rhs) {
-    return !(rhs < lhs);
-}
-template<typename T, typename A>
-inline bool operator<=(const char *lhs, const StringBase<T, A> &rhs) {
-    return !(rhs < lhs);
-}
-
-template<typename T, typename A>
-inline bool operator>=(const StringBase<T, A> &lhs,
-                       const StringBase<T, A> &rhs) {
-    return !(lhs < rhs);
-}
-template<typename T, typename A>
-inline bool operator>=(const StringBase<T, A> &lhs, const char *rhs) {
-    return !(lhs < rhs);
-}
-template<typename T, typename A>
-inline bool operator>=(const char *lhs, const StringBase<T, A> &rhs) {
-    return !(lhs < rhs);
-}
 
 /* string literals */
 
 inline namespace literals { inline namespace string_literals {
     String operator "" _s(const char *str, Size len) {
-        return String(str, len);
+        return String(ConstCharRange(str, len));
+    }
+
+    ConstCharRange operator "" _S(const char *str, Size len) {
+        return ConstCharRange(str, len);
     }
 } }
 
-template<typename A, typename T, typename F, typename S = const char *>
-AnyString<A> concat(AllocatorArg, const A &alloc, const T &v, const S &sep,
-                    F func) {
-    AnyString<A> ret(alloc);
+namespace detail {
+    template<typename T, bool = IsConvertible<T, ConstCharRange>::value,
+                         bool = IsConvertible<T, char>::value>
+    struct ConcatPut;
+
+    template<typename T, bool B>
+    struct ConcatPut<T, true, B> {
+        template<typename R>
+        static bool put(R &sink, ConstCharRange v) {
+            return v.size() && (sink.put_n(&v[0], v.size()) == v.size());
+        }
+    };
+
+    template<typename T>
+    struct ConcatPut<T, false, true> {
+        template<typename R>
+        static bool put(R &sink, char v) {
+            return sink.put(v);
+        }
+    };
+}
+
+template<typename R, typename T, typename F>
+bool concat(R &&sink, const T &v, ConstCharRange sep, F func) {
     auto range = ostd::iter(v);
-    if (range.empty()) return ret;
+    if (range.empty()) return true;
     for (;;) {
-        ret += func(range.front());
+        if (!detail::ConcatPut<
+            decltype(func(range.front()))
+        >::put(sink, func(range.front())))
+            return false;
         range.pop_front();
         if (range.empty()) break;
-        ret += sep;
+        sink.put_n(&sep[0], sep.size());
     }
-    return ret;
+    return true;
 }
 
-template<typename A, typename T, typename S = const char *>
-AnyString<A> concat(AllocatorArg, const A &alloc, const T &v,
-                    const S &sep = " ") {
-    AnyString<A> ret(alloc);
+template<typename R, typename T>
+bool concat(R &&sink, const T &v, ConstCharRange sep = " ") {
     auto range = ostd::iter(v);
-    if (range.empty()) return ret;
+    if (range.empty()) return true;
     for (;;) {
-        ret += range.front();
+        ConstCharRange ret = range.front();
+        if (!ret.size() || (sink.put_n(&ret[0], ret.size()) != ret.size()))
+            return false;
         range.pop_front();
         if (range.empty()) break;
-        ret += sep;
+        sink.put_n(&sep[0], sep.size());
     }
-    return ret;
+    return true;
 }
 
-template<typename T, typename F, typename S = const char *>
-String concat(const T &v, const S &sep, F func) {
-    return concat(allocator_arg, typename String::Allocator(), v, sep, func);
+template<typename R, typename T, typename F>
+bool concat(R &&sink, std::initializer_list<T> v, ConstCharRange sep, F func) {
+    return concat(sink, ostd::iter(v), sep, func);
 }
 
-template<typename T, typename S = const char *>
-String concat(const T &v, const S &sep = " ") {
-    return concat(allocator_arg, typename String::Allocator(), v, sep);
-}
-
-template<typename A, typename T, typename F, typename S = const char *>
-AnyString<A> concat(AllocatorArg, const A &alloc,
-                    std::initializer_list<T> v, const S &sep, F func) {
-    return concat(allocator_arg, alloc, ostd::iter(v), sep, func);
-}
-
-template<typename A, typename T, typename S = const char *>
-AnyString<A> concat(AllocatorArg, const A &alloc,
-                    std::initializer_list<T> v, const S &sep = " ") {
-    return concat(allocator_arg, alloc, ostd::iter(v), sep);
-}
-
-template<typename T, typename F, typename S = const char *>
-String concat(std::initializer_list<T> v, const S &sep, F func) {
-    return concat(ostd::iter(v), sep, func);
-}
-
-template<typename T, typename S = const char *>
-String concat(std::initializer_list<T> v, const S &sep = " ") {
-    return concat(ostd::iter(v), sep);
+template<typename R, typename T>
+bool concat(R &&sink, std::initializer_list<T> v, ConstCharRange sep = " ") {
+    return concat(sink, ostd::iter(v), sep);
 }
 
 namespace detail {
-    template<typename T>
-    auto test_tostring(int) ->
-        decltype(IsSame<decltype(declval<T>().to_string()), String>());
-    template<typename>
-    False test_tostring(...);
+    template<typename R>
+    struct TostrRange: OutputRange<TostrRange<R>, char> {
+        TostrRange() = delete;
+        TostrRange(R &out): p_out(out), p_written(0) {}
+        bool put(char v) {
+            bool ret = p_out.put(v);
+            p_written += ret;
+            return ret;
+        }
+        Size put_n(const char *v, Size n) {
+            Size ret = p_out.put_n(v, n);
+            p_written += ret;
+            return ret;
+        }
+        Size put_string(ConstCharRange r) {
+            return put_n(&r[0], r.size());
+        }
+        Size get_written() const { return p_written; }
+    private:
+        R &p_out;
+        Size p_written;
+    };
 
-    template<typename T>
-    using ToStringTest = decltype(test_tostring<T>(0));
+    template<typename T, typename R>
+    auto test_stringify(int) ->
+        decltype(IsSame<decltype(declval<T>().stringify()), String>());
+
+    template<typename T, typename R>
+    static True test_stringify(decltype(declval<const T &>().to_string
+        (declval<R &>())) *);
+
+    template<typename, typename>
+    False test_stringify(...);
+
+    template<typename T, typename R>
+    using StringifyTest = decltype(test_stringify<T, R>(0));
 
     template<typename T>
     True test_iterable(decltype(ostd::iter(declval<T>())) *);
@@ -688,23 +665,29 @@ struct ToString<T, EnableIf<detail::IterableTest<T>::value>> {
 
     String operator()(const T &v) const {
         String ret("{");
-        ret += concat(ostd::iter(v), ", ", ToString<
+        auto x = appender<String>();
+        if (concat(x, ostd::iter(v), ", ", ToString<
             RemoveConst<RemoveReference<
                 RangeReference<decltype(ostd::iter(v))>
             >>
-        >());
+        >())) ret += x.get();
         ret += "}";
         return ret;
     }
 };
 
 template<typename T>
-struct ToString<T, EnableIf<detail::ToStringTest<T>::value>> {
+struct ToString<T, EnableIf<
+    detail::StringifyTest<T, detail::TostrRange<AppenderRange<String>>>::value
+>> {
     using Argument = RemoveCv<RemoveReference<T>>;
     using Result = String;
 
     String operator()(const T &v) const {
-        return v.to_string();
+        auto app = appender<String>();
+        detail::TostrRange<AppenderRange<String>> sink(app);
+        if (!v.to_string(sink)) return String();
+        return move(app.get());
     }
 };
 
@@ -805,8 +788,16 @@ template<> struct ToString<String> {
     }
 };
 
-template<> struct ToString<StringRange> {
-    using Argument = StringRange;
+template<> struct ToString<CharRange> {
+    using Argument = CharRange;
+    using Result = String;
+    String operator()(const Argument &s) {
+        return String(s);
+    }
+};
+
+template<> struct ToString<ConstCharRange> {
+    using Argument = ConstCharRange;
     using Result = String;
     String operator()(const Argument &s) {
         return String(s);
