@@ -56,26 +56,16 @@ namespace logger
 
         char sbuf[512];
         char *buf = sbuf;
-        va_list ap;
-#if defined(WIN32) && !defined(__GNUC__)
+        va_list ap, ap2;
         va_start(ap, fmt);
-        size_t len = _vscprintf(fmt, ap);
-        if (len >= sizeof(sbuf)) {
-            buf = new char[len + 1];
-        }
-        _vsnprintf(buf, len + 1, fmt, ap);
-        va_end(ap);
-#else
-        va_start(ap, fmt);
+        va_copy(ap2, ap);
         size_t len = vsnprintf(sbuf, sizeof(sbuf), fmt, ap);
         va_end(ap);
         if (len >= sizeof(sbuf)) {
             buf = new char[len + 1];
-            va_start(ap, fmt);
-            vsnprintf(buf, len + 1, fmt, ap);
-            va_end(ap);
+            vsnprintf(buf, len + 1, fmt, ap2);
         }
-#endif
+        va_end(ap2);
 
 #ifndef STANDALONE
         if (level == ERROR) {

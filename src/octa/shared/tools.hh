@@ -108,7 +108,6 @@ static inline int bitscan(uint mask)
 
 #else
 #define __cdecl
-#define _vsnprintf vsnprintf
 #define PATHDIV '/'
 #endif
 
@@ -123,7 +122,7 @@ static inline int bitscan(uint mask)
 #define MAXSTRLEN 260
 typedef char string[MAXSTRLEN];
 
-inline void vformatstring(char *d, const char *fmt, va_list v, int len) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
+inline void vformatstring(char *d, const char *fmt, va_list v, int len) { vsnprintf(d, len, fmt, v); d[len-1] = 0; }
 template<size_t N> inline void vformatstring(char (&d)[N], const char *fmt, va_list v) { vformatstring(d, fmt, v, N); }
 
 inline char *copystring(char *d, const char *s, size_t len)
