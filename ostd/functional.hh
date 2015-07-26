@@ -225,8 +225,12 @@ namespace detail {
 
 
     template<> struct FnvConstants<8> {
-        static constexpr Size prime = 1099511628211u;
-        static constexpr Size offset = 14695981039346656037u;
+        /* conversion is necessary here because when compiling on
+         * 32bit, compilers will complain, despite this template
+         * not being instantiated...
+         */
+        static constexpr Size prime = Size(1099511628211u);
+        static constexpr Size offset = Size(14695981039346656037u);
     };
 
     inline Size mem_hash(const void *p, Size l) {
