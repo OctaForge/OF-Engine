@@ -348,7 +348,6 @@ public:
 
 class Tag: public NamedWidget {
 public:
-    static int type;
     using NamedWidget::NamedWidget;
 
     virtual ostd::Size get_type();
