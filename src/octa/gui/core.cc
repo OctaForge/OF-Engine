@@ -361,6 +361,10 @@ void Root::draw(float sx, float sy) {
         }
         return false;
     });
+    for (Widget *o: p_menustack.iter())
+        o->projection()->draw();
+    if (p_tooltip)
+        p_tooltip->projection()->draw();
 }
 
 } } /* namespace octa::gui */

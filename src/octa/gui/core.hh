@@ -331,14 +331,14 @@ class NamedWidget: public Widget {
 public:
     ostd::Signal<const NamedWidget> name_changed = this;
 
-    NamedWidget(ostd::String s): p_name(ostd::move(s)) {}
+    NamedWidget(ostd::ConstCharRange s): p_name(s) {}
 
     virtual ostd::Size get_type();
 
     const ostd::String &name() const { return p_name; }
 
-    void set_name(ostd::String s) {
-        p_name = ostd::move(s);
+    void set_name(ostd::ConstCharRange s) {
+        p_name = s;
         name_changed.emit();
     }
 };
@@ -362,8 +362,9 @@ public:
     ostd::Signal<const Window> input_grab_changed = this;
     ostd::Signal<const Window> above_hud_changed  = this;
 
-    Window(ostd::String name, bool input_grab = true, bool above_hud = false):
-        NamedWidget(ostd::move(name)), p_input_grab(input_grab),
+    Window(ostd::ConstCharRange name, bool input_grab = true,
+           bool above_hud = false):
+        NamedWidget(name), p_input_grab(input_grab),
         p_above_hud(above_hud) {}
 
     virtual ostd::Size get_type();
@@ -400,11 +401,24 @@ public:
 class Root: public Widget {
     ostd::Vector<Window *> p_windows;
     ostd::Vector<ClipArea> p_clipstack;
+    ostd::Vector<Widget *> p_menustack;
 
     Widget *p_drawing = nullptr;
+    Widget *p_tooltip = nullptr;
+    Widget *p_clicked = nullptr;
+    Widget *p_hovering = nullptr;
+    Widget *p_focused = nullptr;
+
+    float p_rtxt_scale = 0;
+    float p_ctxt_scale = 0;
 
     float p_curx = 0.499, p_cury = 0.499;
     bool p_has_cursor = false;
+
+    float p_hovx = 0, p_hovy = 0;
+    float p_clickx = 0, p_clicky = 0;
+
+    ostd::sbyte p_menu_nhov = -2;
 
 public:
     friend class Widget;
