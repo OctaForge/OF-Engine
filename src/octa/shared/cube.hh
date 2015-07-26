@@ -7,6 +7,10 @@
 #define gamma __gamma
 #endif
 
+#ifdef __STRICT_ANSI__
+#undef __STRICT_ANSI__
+#endif
+
 #ifdef WIN32
 #define _USE_MATH_DEFINES
 #endif
@@ -44,6 +48,7 @@ extern "C" {
 
 #ifdef WIN32
   #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
   #ifdef _WIN32_WINNT
   #undef _WIN32_WINNT
   #endif
