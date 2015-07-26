@@ -300,6 +300,7 @@
 		<Unit filename="..\ostd\ostd\type_traits.hh" />
 		<Unit filename="..\ostd\ostd\types.hh" />
 		<Unit filename="..\ostd\ostd\utility.hh" />
+		<Unit filename="..\ostd\ostd\vecmath.hh" />
 		<Unit filename="..\ostd\ostd\vector.hh" />
 		<Unit filename="..\ostd\src\new.cc" />
 		<Unit filename="mingw.rc">

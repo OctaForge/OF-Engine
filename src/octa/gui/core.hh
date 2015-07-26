@@ -11,6 +11,7 @@
 #include <ostd/vector.hh>
 #include <ostd/string.hh>
 #include <ostd/algorithm.hh>
+#include <ostd/vecmath.hh>
 
 namespace octa { namespace gui {
 
@@ -98,7 +99,7 @@ public:
 class Projection {
     Widget *p_obj;
     float p_px = 0, p_py = 0, p_pw = 0, p_ph = 0;
-    float p_ss_x = 0, p_ss_y = 0, p_so_x = 0, p_so_y = 0;
+    ostd::Vec2f p_sscale, p_soffset;
 
 public:
     Projection(Widget *obj): p_obj(obj) {}

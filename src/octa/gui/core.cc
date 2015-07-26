@@ -77,20 +77,16 @@ void Projection::adjust_layout() {
 void Projection::projection() {
     hudmatrix.ortho(p_px, p_px + p_pw, p_py + p_ph, p_py, -1, 1);
     resethudmatrix();
-    vec2 sscale = vec2(hudmatrix.a.x, hudmatrix.b.y).mul(0.5f);
-    vec2 soffset = vec2(hudmatrix.d.x, hudmatrix.d.y).mul(0.5f).add(0.5f);
-    p_ss_x = sscale.x, p_ss_y = sscale.y;
-    p_so_x = soffset.x, p_so_y = soffset.y;
+    p_sscale = ostd::Vec2f(hudmatrix.a.x, hudmatrix.b.y) * 0.5f;
+    p_soffset = ostd::Vec2f(hudmatrix.d.x, hudmatrix.d.y) * 0.5f + 0.5f;
 }
 
 void Projection::calc_scissor(float x1, float y1, float x2, float y2,
                               int &sx1, int &sy1, int &sx2, int &sy2,
                               bool clip) {
     Root *r = p_obj->root();
-    vec2 sscale(p_ss_x, p_ss_y);
-    vec2 soffset(p_so_x, p_so_y);
-    vec2 s1 = vec2(x1, y2).mul(sscale).add(soffset),
-         s2 = vec2(x2, y1).mul(sscale).add(soffset);
+    ostd::Vec2f s1 = ostd::Vec2f(x1, y2) * p_sscale + p_soffset,
+                s2 = ostd::Vec2f(x2, y1) * p_sscale + p_soffset;
     int hudw = r->get_pixel_w(), hudh = r->get_pixel_h();
     sx1 = int(floor(s1.x * hudw + 0.5f));
     sy1 = int(floor(s1.y * hudh + 0.5f));
@@ -130,7 +126,7 @@ void Projection::draw() {
 }
 
 float Projection::calc_above_hud() {
-    return 1 - (p_obj->y() * p_ss_y + p_so_y);
+    return 1 - (p_obj->y() * p_sscale.y + p_soffset.y);
 }
 
 /* color */
