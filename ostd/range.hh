@@ -386,6 +386,9 @@ public:
     HalfRange<RangeHalf> iter(const RangeHalf &other) const {
         return HalfRange<RangeHalf>(*this, other);
     }
+
+    RangeValue<T> *data() { return p_range.data(); }
+    const RangeValue<T> *data() const { return p_range.data(); }
 };
 
 template<typename R>
@@ -622,12 +625,15 @@ public:
     bool put(RangeValue<Rtype> &&v) {
         return p_beg.range().put(move(v));
     }
+
+    RangeValue<Rtype> *data() { return p_beg.data(); }
+    const RangeValue<Rtype> *data() const { return p_beg.data(); }
 };
 
 template<typename T>
 struct ReverseRange: InputRange<ReverseRange<T>,
-    RangeCategory<T>, RangeValue<T>, RangeReference<T>, RangeSize<T>,
-    RangeDifference<T>
+    CommonType<RangeCategory<T>, FiniteRandomAccessRangeTag>,
+    RangeValue<T>, RangeReference<T>, RangeSize<T>, RangeDifference<T>
 > {
 private:
     using Rref = RangeReference<T>;
@@ -700,8 +706,8 @@ public:
 
 template<typename T>
 struct MoveRange: InputRange<MoveRange<T>,
-    RangeCategory<T>, RangeValue<T>, RangeValue<T> &&, RangeSize<T>,
-    RangeDifference<T>
+    CommonType<RangeCategory<T>, FiniteRandomAccessRangeTag>,
+    RangeValue<T>, RangeValue<T> &&, RangeSize<T>, RangeDifference<T>
 > {
 private:
     using Rval = RangeValue<T>;
@@ -809,7 +815,7 @@ NumberRange<T> range(T v) {
 
 template<typename T>
 struct PointerRange: InputRange<PointerRange<T>, ContiguousRangeTag, T> {
-    PointerRange() = delete;
+    PointerRange(): p_beg(nullptr), p_end(nullptr) {}
     PointerRange(T *beg, T *end): p_beg(beg), p_end(end) {}
     PointerRange(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
 
