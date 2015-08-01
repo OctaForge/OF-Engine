@@ -336,7 +336,7 @@ public:
             if ((p_buf.second() != v.p_buf.second()) && p_cap) {
                 allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
                 p_cap = 0;
-                p_buf.first() = &p_len;
+                p_buf.first() = (Pointer)&p_len;
             }
             p_buf.second() = v.p_buf.second();
         }
@@ -345,9 +345,10 @@ public:
         if (p_len) {
             memcpy(p_buf.first(), v.p_buf.first(), p_len);
             p_buf.first()[p_len] = '\0';
-        } else p_buf.first() = &p_len;
+        } else p_buf.first() = (Pointer)&p_len;
         return *this;
     }
+
     StringBase &operator=(StringBase &&v) {
         clear();
         if (p_cap) allocator_deallocate(p_buf.second(), p_buf.first(), p_cap);
@@ -360,6 +361,7 @@ public:
         if (!p_cap) p_buf.first() = (Pointer)&p_len;
         return *this;
     }
+
     StringBase &operator=(ConstRange v) {
         reserve(v.size());
         if (v.size()) memcpy(p_buf.first(), &v[0], v.size());
@@ -367,6 +369,22 @@ public:
         p_len = v.size();
         return *this;
     }
+
+    template<typename U>
+    EnableIf<
+        IsConvertible<U, const Value *>::value && !IsArray<U>::value,
+        StringBase &
+    > operator=(U v) {
+        return operator=(ConstRange(v));
+    }
+
+    template<typename U, Size N>
+    EnableIf<
+        IsConvertible<U *, const Value *>::value, StringBase &
+    > operator=(U (&v)[N]) {
+        return operator=(ConstRange(v));
+    }
+
     template<typename R, typename = EnableIf<
         IsInputRange<R>::value &&
         IsConvertible<RangeReference<R>, Value>::value
@@ -537,11 +555,11 @@ using String = StringBase<char>;
 /* string literals */
 
 inline namespace literals { inline namespace string_literals {
-    String operator "" _s(const char *str, Size len) {
+    inline String operator "" _s(const char *str, Size len) {
         return String(ConstCharRange(str, len));
     }
 
-    ConstCharRange operator "" _S(const char *str, Size len) {
+    inline ConstCharRange operator "" _S(const char *str, Size len) {
         return ConstCharRange(str, len);
     }
 } }

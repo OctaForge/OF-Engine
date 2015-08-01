@@ -307,7 +307,7 @@ protected:
             Chain *c = find(key, h);
             if (c) return B::get_data(c->value);
             rehash_ahead(1);
-            return insert(h, key);
+            return insert(bucket(key), key);
         }
 
         T &access_or_insert(K &&key) {
@@ -315,7 +315,7 @@ protected:
             Chain *c = find(key, h);
             if (c) return B::get_data(c->value);
             rehash_ahead(1);
-            return insert(h, move(key));
+            return insert(bucket(key), move(key));
         }
 
         T *access(const K &key) const {

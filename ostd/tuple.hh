@@ -515,7 +515,7 @@ namespace detail {
     struct TupleLess {
         template<typename T, typename U>
         bool operator()(const T &x, const U &y) {
-            Size J = TupleSize<T>::value - I;
+            constexpr Size J = TupleSize<T>::value - I;
             if (get<J>(x) < get<J>(y)) return true;
             if (get<J>(y) < get<J>(x)) return false;
             return TupleLess<I - 1>()(x, y);
