@@ -97,29 +97,6 @@ export var open_zip = @[server,func() { return undef },capi.stream_open_zip]
 */
 export var open_gz = capi.stream_open_gz
 
-/** Function: open_utf8
-    Like $open, but treats the file as UTF-8 input, translating to the
-    Cube 2 charset on the fly. This is often what you don't want, as you want
-    to read the input source as UTF-8 instead of the Cube encoding, but it
-    sometimes comes in handy.
-
-    Arguments:
-        - filename, mode - see $open.
-        - file - if provided, this should be a previously opened file stream -
-          in that case the prior two arguments are ignored and this is used as
-          source stream for the gzip stream. It doesn't close the previous
-          stream, merely reuses it. An internal refcounting mechanism makes
-          sure the original stream is preserved for as long as the child
-          stream is alive.
-
-    See also:
-        - $open
-        - $open_raw
-        - $open_zip
-        - $open_gz
-*/
-export var open_utf8 = capi.stream_open_utf8
-
 /** Function: type
     Checks if the given value is a file stream. Returns `stream` when it is,
     `closed stream` when it's a closed stream and `undef` when it's not a stream.

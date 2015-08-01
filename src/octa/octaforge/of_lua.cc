@@ -221,18 +221,6 @@ namespace lua
             ? s_push_ret(L, 0, fname) : 1;
     });
 
-    LUAICOMMAND(stream_open_utf8, {
-        STREAMOPENPARAMS(fname, mode, ud)
-        stream *file = NULL;
-        if (!lua_isnoneornil(L, 3)) {
-            file = s_get_stream(L, 3);
-            if (file->refcount < 0) file->refcount = 0;
-            file->incref();
-        }
-        return (!(*ud = openutf8file(fname, mode, file)))
-            ? s_push_ret(L, 0, fname) : 1;
-    });
-
     #undef STREAMOPENPARAMS
 
     LUAICOMMAND(stream_type, {
