@@ -14,7 +14,7 @@
 import core.entities.svars
 
 from core.entities.ents import ParticleEffect, register_prototype
-from core.engine.particles import flame, splash, flags as pflags,
+from core.engine.particles import flame, splash, flare, flags as pflags,
     register_renderer_quad as quadrenderer
 
 from std.math import min, random as rand
@@ -28,7 +28,8 @@ var renderers = {
         pflags.FLIP | pflags.LERP),
     flame: quadrenderer("flame", "media/particle/flames",
         pflags.HFLIP | pflags.RND4 | pflags.BRIGHT),
-    steam: quadrenderer("steam", "media/particle/steam", pflags.FLIP)
+    steam: quadrenderer("steam", "media/particle/steam", pflags.FLIP),
+    glow: quadrenderer("glow", "media/particle/glow", pflags.FLIP)
 }
 
 var cmap = [ "x", "y", "z" ]
@@ -144,5 +145,44 @@ export var SteamEffect = ParticleEffect.clone({
     }
 })
 
+var GLOW = renderers.glow
+
+export var GlowEffect = ParticleEffect.clone({
+    name: "GlowEffect",
+
+    __attr_names: [ "radius", "red", "green", "blue" ],
+
+    __properties: {
+        radius: svars::StateInteger(),
+        red   : svars::StateInteger(),
+        green : svars::StateInteger(),
+        blue  : svars::StateInteger()
+    },
+
+    __init_svars: func(self, kwargs, nd) {
+        ParticleEffect::__init_svars(self, kwargs, nd)
+        self.set_attr("radius", 50, nd[0])
+        self.set_attr("red",   0xFF, nd[1])
+        self.set_attr("green", 0xFF, nd[2])
+        self.set_attr("blue",  0xFF, nd[3])
+    },
+
+    __get_edit_info: func(self) {
+        return "red :\f2 %d \f7| green :\f2 %d \f7| blue :\f2 %d\n\f7"
+               "radius :\f2 %.3f \f7".format(
+            self.get_attr("red"), self.get_attr("green"),
+            self.get_attr("blue"), self.get_attr("radius"))
+    },
+
+    __emit_particles: func(self) {
+        var pos = self.get_attr("position")
+        var rad = self.get_attr("radius")
+        var r, g, b = self.get_attr("red"), self.get_attr("green"),
+            self.get_attr("blue")
+        flare(GLOW, pos, pos, r / 255, g / 255, b / 255, 0, 1)
+    }
+})
+
 register_prototype(FireEffect)
 register_prototype(SteamEffect)
+register_prototype(GlowEffect)
