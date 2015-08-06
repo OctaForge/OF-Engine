@@ -29,7 +29,7 @@ var renderers = {
     flame: quadrenderer("flame", "media/particle/flames",
         pflags.HFLIP | pflags.RND4 | pflags.BRIGHT),
     steam: quadrenderer("steam", "media/particle/steam", pflags.FLIP),
-    glow: quadrenderer("glow", "media/particle/glow", pflags.FLIP)
+    glow: quadrenderer("glow", "media/particle/glow")
 }
 
 var cmap = [ "x", "y", "z" ]
