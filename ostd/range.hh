@@ -815,8 +815,18 @@ NumberRange<T> range(T v) {
 
 template<typename T>
 struct PointerRange: InputRange<PointerRange<T>, ContiguousRangeTag, T> {
+private:
+    struct Nat {};
+
+public:
     PointerRange(): p_beg(nullptr), p_end(nullptr) {}
-    PointerRange(T *beg, T *end): p_beg(beg), p_end(end) {}
+
+    template<typename U>
+    PointerRange(T *beg, U end, EnableIf<
+        (IsPointer<U>::value || IsNullPointer<U>::value) &&
+        IsConvertible<U, T *>::value, Nat
+    > = Nat()): p_beg(beg), p_end(end) {}
+
     PointerRange(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
 
     template<typename U, typename = EnableIf<
@@ -960,9 +970,21 @@ PointerRange<T> iter(T (&array)[N]) {
     return PointerRange<T>(array, N);
 }
 
-template<typename T, Size N>
-PointerRange<const T> iter(const T (&array)[N]) {
-    return PointerRange<const T>(array, N);
+namespace detail {
+    struct PtrNat {};
+}
+
+template<typename T, typename U>
+PointerRange<T> iter(T *a, U b, EnableIf<
+    (IsPointer<U>::vvalue || IsNullPointer<U>::value) &&
+    IsConvertible<U, T *>::value, detail::PtrNat
+> = detail::PtrNat()) {
+    return PointerRange<T>(a, b);
+}
+
+template<typename T>
+PointerRange<T> iter(T *a, ostd::Size b) {
+    return PointerRange<T>(a, b);
 }
 
 template<typename T, typename S>

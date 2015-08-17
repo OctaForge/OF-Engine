@@ -29,14 +29,22 @@ private:
 
 public:
     CharRangeBase(): p_beg(nullptr), p_end(nullptr) {};
-    CharRangeBase(T *beg, T *end): p_beg(beg), p_end(end) {}
+
+    template<typename U>
+    CharRangeBase(T *beg, U end, EnableIf<
+        (IsPointer<U>::value || IsNullPointer<U>::value) &&
+        IsConvertible<U, T *>::value, Nat
+    > = Nat()): p_beg(beg), p_end(end) {}
+
     CharRangeBase(T *beg, Size n): p_beg(beg), p_end(beg + n) {}
 
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
     template<typename U>
     CharRangeBase(U beg, EnableIf<
         IsConvertible<U, T *>::value && !IsArray<U>::value, Nat
-    > = Nat()): p_beg(beg), p_end((T *)beg + strlen(beg)) {}
+    > = Nat()): p_beg(beg), p_end((T *)beg + (beg ? strlen(beg) : 0)) {}
+
+    CharRangeBase(Nullptr): p_beg(nullptr), p_end(nullptr) {}
 
     template<typename U, Size N>
     CharRangeBase(U (&beg)[N], EnableIf<
@@ -65,7 +73,7 @@ public:
     }
     /* TODO: traits for utf-16/utf-32 string lengths, for now assume char */
     CharRangeBase &operator=(T *s) {
-        p_beg = s; p_end = s + strlen(s); return *this;
+        p_beg = s; p_end = s + (s ? strlen(s) : 0); return *this;
     }
 
     bool empty() const { return p_beg == p_end; }
@@ -325,6 +333,7 @@ public:
     }
 
     void clear() {
+        if (!p_len) return;
         p_len = 0;
         *p_buf.first() = '\0';
     }
@@ -425,17 +434,17 @@ public:
         p_buf.first() = tmp;
     }
 
-    T &operator[](Size i) { return p_buf[i]; }
-    const T &operator[](Size i) const { return p_buf[i]; }
+    T &operator[](Size i) { return p_buf.first()[i]; }
+    const T &operator[](Size i) const { return p_buf.first()[i]; }
 
-    T &at(Size i) { return p_buf[i]; }
-    const T &at(Size i) const { return p_buf[i]; }
+    T &at(Size i) { return p_buf.first()[i]; }
+    const T &at(Size i) const { return p_buf.first()[i]; }
 
-    T &front() { return p_buf[0]; }
-    const T &front() const { return p_buf[0]; };
+    T &front() { return p_buf.first()[0]; }
+    const T &front() const { return p_buf.first()[0]; };
 
-    T &back() { return p_buf[size() - 1]; }
-    const T &back() const { return p_buf[size() - 1]; }
+    T &back() { return p_buf.first()[size() - 1]; }
+    const T &back() const { return p_buf.first()[size() - 1]; }
 
     Value *data() { return p_buf.first(); }
     const Value *data() const { return p_buf.first(); }
@@ -447,6 +456,8 @@ public:
     Size capacity() const {
         return p_cap;
     }
+
+    void advance(Size s) { p_len += s; }
 
     Size length() const {
         /* TODO: unicode */
