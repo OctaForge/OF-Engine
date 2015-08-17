@@ -2,7 +2,7 @@ Compiling OctaForge
 *******************
 
 Officially supported platforms for OctaForge (those which include/will include
-binaries) are currently Linux, FreeBSD, Windows and OS X (experimental).
+binaries) are currently Linux, FreeBSD, Windows and OS X.
 
 It should work without problems also on Solaris and other UNIX-like or UNIX
 systems.
@@ -101,8 +101,6 @@ Supported compilers are GCC (at least 4.2), Clang and possibly others.
 
 OS X
 ====
-
-**SUPPORTED, BUT CURRENTLY BROKEN - FIX PENDING**
 
 First, fetch the repository with dependencies and place the `Frameworks` directory
 into `src/xcode`.
