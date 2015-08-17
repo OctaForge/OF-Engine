@@ -68,10 +68,10 @@ private:
     }
 
     template<typename T>
-    inline void write_impl(const T &v, EnableIf<
+    inline bool write_impl(const T &v, EnableIf<
         !IsConstructible<ConstCharRange, const T &>::value, StNat
     > = StNat()) {
-        write(ostd::to_string(v));
+        return write(ostd::to_string(v));
     }
 
 public:
@@ -113,7 +113,7 @@ public:
 
     template<typename T>
     bool write(const T &v) {
-        write_impl(v);
+        return write_impl(v);
     }
 
     template<typename T, typename ...A>

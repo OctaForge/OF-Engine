@@ -276,6 +276,20 @@ R find(R range, const T &v) {
     return range;
 }
 
+template<typename R, typename T>
+R find_last(R range, const T &v) {
+    range = find(range, v);
+    if (!range.empty()) for (;;) {
+        R prev = range;
+        prev.pop_front();
+        R r = find(prev, v);
+        if (r.empty())
+            break;
+        prev = r;
+    }
+    return range;
+}
+
 template<typename R, typename P>
 R find_if(R range, P pred) {
     for (; !range.empty(); range.pop_front())
@@ -289,6 +303,24 @@ R find_if_not(R range, P pred) {
     for (; !range.empty(); range.pop_front())
         if (!pred(range.front()))
             break;
+    return range;
+}
+
+template<typename R1, typename R2, typename C>
+R1 find_one_of(R1 range, R2 values, C compare) {
+    for (; !range.empty(); range.pop_front())
+        for (R2 rv = values; !rv.empty(); rv.pop_front())
+            if (compare(range.front(), rv.front()))
+                return range;
+    return range;
+}
+
+template<typename R1, typename R2>
+R1 find_one_of(R1 range, R2 values) {
+    for (; !range.empty(); range.pop_front())
+        for (R2 rv = values; !rv.empty(); rv.pop_front())
+            if (range.front() == rv.front())
+                return range;
     return range;
 }
 
@@ -327,6 +359,11 @@ bool equal(R range1, R range2) {
         range2.pop_front();
     }
     return range2.empty();
+}
+
+template<typename R>
+R slice_until(R range1, R range2) {
+    return range1.slice(0, range1.distance_front(range2));
 }
 
 /* algos that modify ranges or work with output ranges */

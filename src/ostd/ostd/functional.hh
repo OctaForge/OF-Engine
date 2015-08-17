@@ -47,6 +47,37 @@ OSTD_DEFINE_BINARY_OP(BitXor, ^, T)
 
 #undef OSTD_DEFINE_BINARY_OP
 
+namespace detail {
+    template<typename T, bool = IsSame<RemoveConst<T>, char>::value>
+    struct CharEqual {
+        using FirstArgument = T *;
+        using SecondArgument = T *;
+        using Result = bool;
+        bool operator()(T *x, T *y) const {
+            return !strcmp(x, y);
+        }
+    };
+
+    template<typename T> struct CharEqual<T, false> {
+        using FirstArgument = T *;
+        using SecondArgument = T *;
+        using Result = bool;
+        bool operator()(T *x, T *y) const {
+            return x == y;
+        }
+    };
+}
+
+template<typename T> struct EqualWithCstr {
+    using FirstArgument = T;
+    using SecondArgument = T;
+    bool operator()(const T &x, const T &y) const {
+        return x == y;
+    }
+};
+
+template<typename T> struct EqualWithCstr<T *>: detail::CharEqual<T> {};
+
 template<typename T> struct LogicalNot {
     bool operator()(const T &x) const { return !x; }
     using Argument = T;

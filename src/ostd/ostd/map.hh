@@ -166,14 +166,14 @@ namespace detail {
 template<
     typename K, typename T,
     typename H = ToHash<K>,
-    typename C = Equal<K>,
+    typename C = EqualWithCstr<K>,
     typename A = Allocator<Pair<const K, T>>
 > using Map = detail::MapImpl<K, T, H, C, A, false>;
 
 template<
     typename K, typename T,
     typename H = ToHash<K>,
-    typename C = Equal<K>,
+    typename C = EqualWithCstr<K>,
     typename A = Allocator<Pair<const K, T>>
 > using Multimap = detail::MapImpl<K, T, H, C, A, true>;
 

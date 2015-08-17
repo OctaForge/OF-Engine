@@ -137,14 +137,14 @@ namespace detail {
 template<
     typename T,
     typename H = ToHash<T>,
-    typename C = Equal<T>,
+    typename C = EqualWithCstr<T>,
     typename A = Allocator<T>
 > using Set = detail::SetImpl<T, H, C, A, false>;
 
 template<
     typename T,
     typename H = ToHash<T>,
-    typename C = Equal<T>,
+    typename C = EqualWithCstr<T>,
     typename A = Allocator<T>
 > using Multiset = detail::SetImpl<T, H, C, A, true>;
 

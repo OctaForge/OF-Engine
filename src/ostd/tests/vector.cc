@@ -84,7 +84,10 @@ int main() {
     assert(w.front() == 5);
     assert(w.back() == 5);
 
-    assert(to_string(w) == "{5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5}");
+    int pushn[] = { 3, 2, 1 };
+    w.push_n(pushn, 3);
+
+    assert(to_string(w) == "{5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5, 3, 2, 1}");
 
     return 0;
 }

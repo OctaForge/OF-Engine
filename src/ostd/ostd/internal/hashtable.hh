@@ -520,20 +520,10 @@ public:
                  * gotta make sure that equal keys always come  after
                  * each other (this is then used by other APIs)
                  */
-                Size h = 0;
-                Chain *found = find(B::get_key(elem), h);
-                if (!found) {
-                    Chain *ch = insert(h);
-                    B::swap_elem(ch->value, elem);
-                    return make_pair(Range(ch), true);
-                }
-                Chain *ch = request_node();
+                Size h = bucket(B::get_key(elem));
+                Chain *ch = insert(h);
                 B::swap_elem(ch->value, elem);
-                Chain *next = found->next;
-                found->next = ch;
-                ch->prev = found;
-                ch->next = next;
-                if (next) next->prev = ch;
+                return make_pair(Range(ch), true);
             }
             Size h = bucket(B::get_key(elem));
             Chain *found = nullptr;
