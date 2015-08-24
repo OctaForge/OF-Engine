@@ -1160,7 +1160,7 @@ ICOMMAND(newent, "V", (tagval *args, int numargs), {
         int len = strlen(str);
         buf.reserve(len + 2);
         buf.add('"');
-        memcpy(&buf[buf.ulen], str, len);
+        memcpy(buf.getbuf() + buf.ulen, str, len);
         buf.advance(len);
         buf.add('"');
         if (i < (numargs - 1)) buf.add(',');
