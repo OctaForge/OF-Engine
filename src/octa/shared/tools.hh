@@ -628,7 +628,7 @@ template <class T> struct vector
 
     int capacity() const { return alen; }
     int length() const { return ulen; }
-    T &operator[](int i) {creturn buf[i]; }
+    T &operator[](int i) { return buf[i]; }
     const T &operator[](int i) const { return buf[i]; }
 
     T *disown() { T *r = buf; buf = NULL; alen = ulen = 0; return r; }
