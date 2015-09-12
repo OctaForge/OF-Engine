@@ -3,12 +3,12 @@
  * This file is part of OctaForge. See COPYING.md for futher information.
  */
 
+#include "cube.hh"
+#include "engine.hh"
+
 #include <ostd/tuple.hh>
 
 #include "octa/gui/core.hh"
-
-#include "cube.hh"
-#include "engine.hh"
 
 namespace octa { namespace gui {
 
