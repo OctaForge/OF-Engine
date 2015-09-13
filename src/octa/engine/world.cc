@@ -553,12 +553,19 @@ void entrotate(int *cw)
     );
 }
 
+VAR(entselnosb, 0, 0, 1);
+
 void entselectionbox(const entity &e, vec &eo, vec &es)
 {
     extentity* _e = (extentity*)&e;
 
     model *m = NULL;
-    if(e.type == ET_MAPMODEL && (m = entities::getmodel(*_e)))
+    if(entselnosb)
+    {
+        es = vec(entselradius);
+        eo = e.o;
+    }
+    else if(e.type == ET_MAPMODEL && (m = entities::getmodel(*_e)))
     {
         mmcollisionbox(*_e, m, eo, es);
         es.max(entselradius);
