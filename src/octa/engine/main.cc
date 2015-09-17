@@ -6,6 +6,8 @@
 #include <direct.h>
 #endif
 
+#include "ostd/filesystem.hh"
+
 #ifdef __APPLE__
 extern "C" {
     void  mac_set_datapath();
@@ -971,14 +973,9 @@ int main(int argc, char **argv)
 #ifdef __APPLE__
     mac_set_datapath();
 #else
-#ifdef WIN32
-#define OF_CHDIR _chdir
-#else
-#define OF_CHDIR chdir
-#endif
     /* make sure the path is correct */
     if (!fileexists("config", "r")) {
-        if (OF_CHDIR("..")) fatal("unable to change directory!");
+        if (!ostd::directory_change("..")) fatal("unable to change directory!");
     }
 #undef OF_CHDIR
 #endif
