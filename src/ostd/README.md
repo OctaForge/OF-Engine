@@ -28,3 +28,12 @@ MSVC++ is currently unsupported. It is likely that it will never be supported,
 as it seems that MS will start supporting Clang in Visual Studio; however,
 if that does not happen and the MS C++ compiler gains the required features,
 support will be added.
+
+## Supported operating systems
+
+Currently supported OSes in OctaSTD are Linux, FreeBSD and OS X. Other
+systems that implement POSIX API will also work (if they don't, bug reports
+are welcome).
+
+Windows is supported at least with the MinGW (gcc) and Clang compilers. MS
+Visual Studio is currently unsupported.

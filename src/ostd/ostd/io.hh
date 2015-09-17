@@ -50,7 +50,7 @@ struct FileStream: Stream {
     }
 
     bool open(ConstCharRange path, StreamMode mode) {
-        if (p_f || path.size() > FILENAME_MAX) return false;
+        if (p_f || (path.size() > FILENAME_MAX)) return false;
         char buf[FILENAME_MAX + 1];
         memcpy(buf, &path[0], path.size());
         buf[path.size()] = '\0';

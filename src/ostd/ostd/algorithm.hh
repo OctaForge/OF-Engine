@@ -285,7 +285,7 @@ R find_last(R range, const T &v) {
         R r = find(prev, v);
         if (r.empty())
             break;
-        prev = r;
+        range = r;
     }
     return range;
 }
