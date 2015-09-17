@@ -505,6 +505,57 @@ template<typename B, typename C, typename V, typename R = V &,
         }
         return (on - n);
     }
+
+    /* iterator like interface operating on the front part of the range
+     * this is sometimes convenient as it can be used within expressions */
+
+    Reference operator*() const {
+        return ((B *)this)->front();
+    }
+
+    B &operator++() {
+        ((B *)this)->pop_front();
+        return *((B *)this);
+    }
+    B operator++(int) {
+        B tmp(*((const B *)this));
+        ((B *)this)->pop_front();
+        return tmp;
+    }
+
+    B &operator--() {
+        ((B *)this)->push_front();
+        return *((B *)this);
+    }
+    B operator--(int) {
+        B tmp(*((const B *)this));
+        ((B *)this)->push_front();
+        return tmp;
+    }
+
+    B operator+(Difference n) const {
+        B tmp(*((const B *)this));
+        tmp.pop_front_n(n);
+        return tmp;
+    }
+    B operator-(Difference n) const {
+        B tmp(*((const B *)this));
+        tmp.push_front_n(n);
+        return tmp;
+    }
+
+    B &operator+=(Difference n) {
+        ((B *)this)->pop_front_n(n);
+        return *((B *)this);
+    }
+    B &operator-=(Difference n) {
+        ((B *)this)->push_front_n(n);
+        return *((B *)this);
+    }
+
+    /* universal bool operator */
+
+    explicit operator bool() const { return !((B *)this)->empty(); }
 };
 
 template<typename T>

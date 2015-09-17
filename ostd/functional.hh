@@ -850,7 +850,7 @@ struct Function<R(Args...)>: detail::FunctionBase<R, Args...> {
         ostd::swap(p_call, f.p_call);
     }
 
-    operator bool() const { return p_call != nullptr; }
+    explicit operator bool() const { return p_call != nullptr; }
 
 private:
     detail::FmStorage p_stor;
