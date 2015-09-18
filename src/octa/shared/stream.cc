@@ -1,5 +1,7 @@
 #include "cube.hh"
 
+#include "ostd/filesystem.hh"
+
 ///////////////////////// character conversion ///////////////
 
 #define CUBECTYPE(s, p, d, a, A, u, U) \
@@ -305,25 +307,25 @@ char *path(char *s)
             if(!file) return s;
             curpart = file+1;
         }
-        for(char *t = curpart; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
+        for(char *t = curpart; (t = strpbrk(t, "/\\")); *t++ = ostd::PATH_SEPARATOR);
         for(char *prevdir = NULL, *curdir = curpart;;)
         {
-            prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
-            curdir = strchr(prevdir, PATHDIV);
+            prevdir = curdir[0]==ostd::PATH_SEPARATOR ? curdir+1 : curdir;
+            curdir = strchr(prevdir, ostd::PATH_SEPARATOR);
             if(!curdir) break;
             if(prevdir+1==curdir && prevdir[0]=='.')
             {
                 memmove(prevdir, curdir+1, strlen(curdir+1)+1);
                 curdir = prevdir;
             }
-            else if(curdir[1]=='.' && curdir[2]=='.' && curdir[3]==PATHDIV)
+            else if(curdir[1]=='.' && curdir[2]=='.' && curdir[3]==ostd::PATH_SEPARATOR)
             {
                 if(prevdir+2==curdir && prevdir[0]=='.' && prevdir[1]=='.') continue;
                 memmove(prevdir, curdir+4, strlen(curdir+4)+1);
-                if(prevdir-2 >= curpart && prevdir[-1]==PATHDIV)
+                if(prevdir-2 >= curpart && prevdir[-1]==ostd::PATH_SEPARATOR)
                 {
                     prevdir -= 2;
-                    while(prevdir-1 >= curpart && prevdir[-1] != PATHDIV) --prevdir;
+                    while(prevdir-1 >= curpart && prevdir[-1] != ostd::PATH_SEPARATOR) --prevdir;
                 }
                 curdir = prevdir;
             }
@@ -371,7 +373,7 @@ bool fileexists(const char *path, const char *mode)
 bool createdir(const char *path)
 {
     size_t len = strlen(path);
-    if(path[len-1]==PATHDIV)
+    if(path[len-1]==ostd::PATH_SEPARATOR)
     {
         static string strip;
         path = copystring(strip, path, len);
@@ -396,9 +398,9 @@ size_t fixpackagedir(char *dir)
 {
     path(dir);
     size_t len = strlen(dir);
-    if(len > 0 && dir[len-1] != PATHDIV)
+    if(len > 0 && dir[len-1] != ostd::PATH_SEPARATOR)
     {
-        dir[len] = PATHDIV;
+        dir[len] = ostd::PATH_SEPARATOR;
         dir[len+1] = '\0';
     }
     return len;
@@ -449,7 +451,7 @@ const char *addpackagedir(const char *dir)
         static int len = strlen("media");
         filter = strstr(filter, "media");
         if(!filter) break;
-        if(filter > pdir && filter[-1] == PATHDIV && filter[len] == PATHDIV) break;
+        if(filter > pdir && filter[-1] == ostd::PATH_SEPARATOR && filter[len] == ostd::PATH_SEPARATOR) break;
         filter += len;
     }
     packagedir &pf = packagedirs.add();
@@ -471,13 +473,13 @@ const char *findfile(const char *filename, const char *mode)
         {
             string dirs;
             copystring(dirs, s);
-            char *dir = strchr(dirs[0]==PATHDIV ? dirs+1 : dirs, PATHDIV);
+            char *dir = strchr(dirs[0]==ostd::PATH_SEPARATOR ? dirs+1 : dirs, ostd::PATH_SEPARATOR);
             while(dir)
             {
                 *dir = '\0';
                 if(!fileexists(dirs, "d") && !createdir(dirs)) return s;
-                *dir = PATHDIV;
-                dir = strchr(dir+1, PATHDIV);
+                *dir = ostd::PATH_SEPARATOR;
+                dir = strchr(dir+1, ostd::PATH_SEPARATOR);
             }
             return s;
         }
@@ -503,7 +505,7 @@ static int search_oct_path(lua_State *L) {
     int mnlen = strlen(modname);
     memcpy(mnpath, modname, mnlen + 1);
     char   *dot = mnpath;
-    while ((dot = strchr(dot, '.'))) *(dot++) = PATHDIV;
+    while ((dot = strchr(dot, '.'))) *(dot++) = ostd::PATH_SEPARATOR;
 
     int nnotfound = 0;
     lua_pushnil(L);
@@ -642,7 +644,7 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files, int filte
     copystring(dirname, dir);
     path(dirname);
     size_t dirlen = strlen(dirname);
-    while(dirlen > 1 && dirname[dirlen-1] == PATHDIV) dirname[--dirlen] = '\0';
+    while(dirlen > 1 && dirname[dirlen-1] == ostd::PATH_SEPARATOR) dirname[--dirlen] = '\0';
     int dirs = 0;
     if((flags&LIST_ROOT) && listdir(dirname, true, ext, files, filter)) dirs++;
     string s;

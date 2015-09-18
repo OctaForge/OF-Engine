@@ -1,5 +1,7 @@
 #include "cube.hh"
 
+#include "ostd/filesystem.hh"
+
 enum
 {
     ZIP_LOCAL_FILE_SIGNATURE = 0x04034B50,
@@ -231,7 +233,7 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
         if(foundofm)
         {
             const char *ofmdir = foundofm;
-            while(--ofmdir >= f.name && *ofmdir != PATHDIV);
+            while(--ofmdir >= f.name && *ofmdir != ostd::PATH_SEPARATOR);
             if(ofmdir < f.name || checkprefix(files, f.name, ofmdir + 1 - f.name))
             {
                 if(ofmdir >= f.name)
@@ -561,8 +563,8 @@ int listzipfiles(const char *dir, const char *ext, vector<char *> &files)
         {
             if(strncmp(f.name, dir, dirsize)) continue;
             const char *name = f.name + dirsize;
-            if(name[0] == PATHDIV) name++;
-            if(strchr(name, PATHDIV)) continue;
+            if(name[0] == ostd::PATH_SEPARATOR) name++;
+            if(strchr(name, ostd::PATH_SEPARATOR)) continue;
             if(!ext) files.add(newstring(name));
             else
             {

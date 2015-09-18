@@ -744,7 +744,7 @@ void checkinput()
 
             case SDL_DROPFILE: {
                 char *fname = event.drop.file;
-                char *mname = strrchr(fname, PATHDIV);
+                char *mname = strrchr(fname, ostd::PATH_SEPARATOR);
                 mname = mname ? (mname + 1) : fname;
                 char *ext = strrchr(mname, '.');
                 if (ext) {

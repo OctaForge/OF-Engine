@@ -104,11 +104,9 @@ static inline int bitscan(uint mask)
 
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
-#define PATHDIV '\\'
 
 #else
 #define __cdecl
-#define PATHDIV '/'
 #endif
 
 #ifdef __GNUC__
