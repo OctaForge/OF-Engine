@@ -1037,7 +1037,11 @@ template<class T> struct hashset : hashbase<hashset<T>, T, T, T>
 
     hashset(int size = basetype::DEFAULTSIZE) : basetype(size) {}
 
-    static inline const T &getkey(const T &elem) { return elem; }
+    /* template necessary here because of gcc5 bug
+     * the bug results in incorrect code being generated, causing a segfault
+     * U is the same as T
+     */
+    template<typename U> static inline const U &getkey(const U &elem) { return elem; }
     static inline T &getdata(T &elem) { return elem; }
     template<class K> static inline void setkey(T &elem, const K &key) {}
 };
