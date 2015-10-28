@@ -71,6 +71,38 @@
 #  endif
 #endif
 
+#ifndef OSTD_PLATFORM_WIN32
+#include <unistd.h>
+#else
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
+#ifdef OSTD_PLATFORM_WIN32
+#  ifdef OSTD_LIBRARY_DLL
+#    ifdef OSTD_TOOLCHAIN_GNU
+#      define OSTD_EXPORT __attribute__((dllexport))
+#    else
+#      define OSTD_EXPORT __declspec(dllexport)
+#    endif
+#  else
+#    ifdef OSTD_TOOLCHAIN_GNU
+#      define OSTD_EXPORT __attribute__((dllimport))
+#    else
+#      define OSTD_EXPORT __declspec(dllimport)
+#    endif
+#  endif
+#  define OSTD_LOCAL
+#else
+#  if __GNUC__ >= 4
+#    define OSTD_EXPORT __attribute__((visibility("default")))
+#    define OSTD_LOCAL  __attribute__((visibility("hidden")))
+#  else
+#    define OSTD_EXPORT
+#    define OSTD_LOCAL
+#  endif
+#endif
+
 namespace ostd {
 
 #if defined(OSTD_TOOLCHAIN_GNU)
@@ -114,6 +146,22 @@ inline uint64_t endian_swap64(uint64_t x) {
 }
 
 #endif
+
+inline int cpu_count_get() {
+    static int count = 0;
+    if (count <= 0) {
+#ifdef OSTD_PLATFORM_WIN32
+        SYSTEM_INFO info;
+        GetSystemInfo(&info);
+        count = info.dwNumberOfProcessors;
+#elif defined(_SC_NPROCESSORS_ONLN)
+        count = int(sysconf(_SC_NPROCESSORS_ONLN));
+#endif
+        if (count <= 0)
+            count = 1;
+    }
+    return count;
+}
 
 }
 
