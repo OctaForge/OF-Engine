@@ -194,6 +194,12 @@ inline bool operator>=(ConstCharRange lhs, ConstCharRange rhs) {
     return lhs.compare(rhs) >= 0;
 }
 
+inline bool starts_with(ConstCharRange a, ConstCharRange b) {
+    if (a.size() < b.size())
+        return false;
+    return a.slice(0, b.size()) == b;
+}
+
 template<typename T, typename A>
 class StringBase {
     using StrPair = detail::CompressedPair<AllocatorPointer<A>, A>;

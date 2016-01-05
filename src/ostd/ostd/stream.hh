@@ -36,7 +36,7 @@ struct StreamRange;
 namespace detail {
     template<Size N>
     struct FormatOutRange: OutputRange<FormatOutRange<N>, char> {
-        FormatOutRange(char *buf): buf(buf), idx(0) {}
+        FormatOutRange(char *ibuf): buf(ibuf), idx(0) {}
         FormatOutRange(const FormatOutRange &r): buf(r.buf), idx(r.idx) {}
         char *buf;
         Size idx;
