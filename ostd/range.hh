@@ -662,8 +662,8 @@ public:
     RangeSize<Rtype> size() const { return p_end - p_beg; }
 
     HalfRange<Rtype>
-    slice(RangeSize<Rtype> start, RangeSize<Rtype> p_end) const {
-        return HalfRange<Rtype>(p_beg + start, p_beg + p_end);
+    slice(RangeSize<Rtype> start, RangeSize<Rtype> end) const {
+        return HalfRange<Rtype>(p_beg + start, p_beg + end);
     }
 
     RangeReference<Rtype> operator[](RangeSize<Rtype> idx) const {
