@@ -1,6 +1,9 @@
 OctaForge
 =========
 
+**THIS REPOSITORY IS ARCHIVED AND DEPRECATED.**
+**Development continues on https://git.octaforge.org.**
+
 For installation, read **INSTALL.md**.
 
 Running depends on the platform.
